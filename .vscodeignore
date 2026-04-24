@@ -1,0 +1,14 @@
+node_modules/
+src/
+example/
+.vscode/
+.git/
+.github/
+images/
+*
+!package.json
+!tikz-language-configuration.json
+!tikz.tmGrammar.json
+!README.md
+!LICENSE
+!images/tikzit.png

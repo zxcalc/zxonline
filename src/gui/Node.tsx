@@ -1,0 +1,168 @@
+import { useContext, useEffect, useRef, useState } from "preact/hooks";
+import { NodeData, StyleData } from "../lib/Data";
+import SceneCoords from "../lib/SceneCoords";
+import { formatLabel } from "../lib/labels";
+import { colorToHex } from "../lib/color";
+import Styles from "../lib/Styles";
+import TikzitHostContext from "./TikzitHostContext";
+
+interface NodeProps {
+  data: NodeData;
+  tikzStyles: Styles;
+  selected?: boolean;
+  highlight?: boolean;
+  sceneCoords: SceneCoords;
+}
+
+const Node = ({ data, tikzStyles, selected, highlight, sceneCoords }: NodeProps) => {
+  const host = useContext(TikzitHostContext);
+  const style = tikzStyles.style(data.property("style"));
+  const coord = sceneCoords.coordToScreen(data.coord);
+  const r = sceneCoords.scale * 0.2;
+
+  const labelRef = useRef<SVGTextElement>(null);
+  const [labelWidth, setLabelWidth] = useState<number>(0);
+
+  const outerLabelRef = useRef<SVGTextElement>(null);
+  const [outerLabelWidth, setOuterLabelWidth] = useState<number>(0);
+  const outerLabel = (data.property("label") ?? "").replace(/^[^:]*:/, "");
+
+  const shape = style.property("tikzit shape") ?? style.property("shape") ?? "circle";
+  const fillColor = colorToHex(style.property("tikzit fill") ?? style.property("fill")) ?? "white";
+  const drawColor = colorToHex(style.property("tikzit draw") ?? style.property("draw")) ?? "black";
+
+  useEffect(() => {
+    setLabelWidth(labelRef.current?.getComputedTextLength() ?? 0);
+  }, [data, labelRef]);
+
+  useEffect(() => {
+    setOuterLabelWidth(outerLabelRef.current?.getComputedTextLength() ?? 0);
+  }, [data, outerLabelRef]);
+
+  return (
+    <g id={`node-${data.id}`} transform={`translate(${coord.x}, ${coord.y})`}>
+      {style.isNone ? (
+        <g>
+          <circle r={sceneCoords.scale * 0.035} fill="#aaa" />
+          <circle
+            r={r}
+            fill="rgba(0,0,0,0)"
+            stroke="#aaa"
+            stroke-dasharray={`${0.0625 * sceneCoords.scale} ${0.0625 * sceneCoords.scale}`}
+            stroke-width={sceneCoords.scale * 0.035}
+          />
+        </g>
+      ) : shape === "rectangle" ? (
+        <rect
+          x={-r}
+          y={-r}
+          width={2 * r}
+          height={2 * r}
+          fill={fillColor}
+          stroke={drawColor}
+          stroke-width={sceneCoords.scale * 0.025}
+        />
+      ) : (
+        <circle
+          r={r}
+          fill={fillColor}
+          stroke={drawColor}
+          stroke-width={sceneCoords.scale * 0.025}
+        />
+      )}
+      {data.label !== "" && (
+        <g>
+          <rect
+            x={-labelWidth / 2 - 2}
+            y={-12}
+            width={labelWidth + 4}
+            height={24}
+            fill="#fe6"
+            stroke="#f00"
+            stroke-dasharray="4 4"
+            opacity={0.6}
+          />
+          <text
+            ref={labelRef}
+            x={0}
+            y={0}
+            text-anchor="middle"
+            alignment-baseline="middle"
+            font-family="monospace"
+            font-weight="bold"
+            style={{ cursor: "default" }}
+          >
+            {formatLabel(data.label)}
+          </text>
+        </g>
+      )}
+      {outerLabel !== "" && (
+        <g>
+          <rect
+            x={-outerLabelWidth / 2 - 2}
+            y={-0.5 * sceneCoords.scale - 12}
+            width={outerLabelWidth + 4}
+            height={24}
+            fill="#6cf"
+            stroke="#09f"
+            stroke-dasharray="4 4"
+            opacity={0.6}
+          />
+          <text
+            ref={outerLabelRef}
+            x={0}
+            y={-0.5 * sceneCoords.scale}
+            text-anchor="middle"
+            alignment-baseline="middle"
+            font-family="monospace"
+            font-weight="bold"
+            style={{ cursor: "default" }}
+          >
+            {formatLabel(outerLabel)}
+          </text>
+        </g>
+      )}
+      {shape === "circle" && (
+        <circle
+          r={r + 4}
+          fill="rgba(150, 200, 255, 0.4)"
+          style={{
+            pointerEvents: "none",
+            opacity: selected ? 1 : 0,
+            transition: host.getConfig("enableAnimations") ? "opacity 0.2s ease-out" : "none",
+          }}
+        />
+      )}
+      {shape === "rectangle" && (
+        <rect
+          x={-r - 4}
+          y={-r - 4}
+          width={2 * (r + 4)}
+          height={2 * (r + 4)}
+          fill="rgba(150, 200, 255, 0.4)"
+          style={{
+            pointerEvents: "none",
+            opacity: selected ? 1 : 0,
+            transition: host.getConfig("enableAnimations") ? "opacity 0.2s ease-out" : "none",
+          }}
+        />
+      )}
+      {highlight && shape === "circle" && (
+        <circle r={r} stroke="rgb(100, 0, 200)" fill="none" stroke-width={4} />
+      )}
+      {highlight && shape === "rectangle" && (
+        <rect
+          x={-r}
+          y={-r}
+          width={2 * r}
+          height={2 * r}
+          stroke="rgb(100, 0, 200)"
+          fill="none"
+          stroke-width={4}
+        />
+      )}
+    </g>
+  );
+};
+
+export default Node;
