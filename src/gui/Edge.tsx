@@ -10,7 +10,7 @@ interface EdgeProps {
   data: EdgeData;
   sourceData: NodeData;
   targetData: NodeData;
-  tikzStyles: Styles;
+  styles: Styles;
   selected?: boolean;
   highlighted?: boolean;
   onPointerDown?: () => void;
@@ -24,7 +24,7 @@ const Edge = ({
   data,
   sourceData,
   targetData,
-  tikzStyles,
+  styles,
   selected,
   highlighted,
   onPointerDown,
@@ -34,10 +34,10 @@ const Edge = ({
   sceneCoords,
 }: EdgeProps) => {
   const config = useContext(ConfigContext);
-  const style = tikzStyles.style(data.property("style"));
+  const style = styles.style(data.property("style"));
   const computed = useMemo(
-    () => computeControlPoints(tikzStyles, sourceData, targetData, data),
-    [tikzStyles, sourceData, targetData, data]
+    () => computeControlPoints(styles, sourceData, targetData, data),
+    [styles, sourceData, targetData, data]
   );
   let [c1, c2, cp1, cp2] = computed[0];
   let cpDist = computed[1];

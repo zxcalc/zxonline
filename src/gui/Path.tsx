@@ -8,14 +8,14 @@ import Styles from "../lib/Styles";
 interface PathProps {
   data: PathData;
   graph: Graph;
-  tikzStyles: Styles;
+  styles: Styles;
   sceneCoords: SceneCoords;
 }
 
-const Path = ({ data, graph, tikzStyles, sceneCoords }: PathProps) => {
+const Path = ({ data, graph, styles, sceneCoords }: PathProps) => {
   if (data.edges.length === 0) return <></>;
   let edgeData = graph.edge(data.edges[0])!;
-  const sty = tikzStyles.style(edgeData.property("style"));
+  const sty = styles.style(edgeData.property("style"));
   const fillColor = colorToHex(sty.property("tikzit fill") ?? sty.property("fill"));
   if (fillColor === undefined) return <></>;
 
@@ -26,7 +26,7 @@ const Path = ({ data, graph, tikzStyles, sceneCoords }: PathProps) => {
     edgeData = graph.edge(data.edges[e])!;
     const sourceData = graph.node(edgeData.source)!;
     const targetData = graph.node(edgeData.target)!;
-    let [cps] = computeControlPoints(tikzStyles, sourceData, targetData, edgeData);
+    let [cps] = computeControlPoints(styles, sourceData, targetData, edgeData);
     cps = cps.slice(1).map(c => sceneCoords.coordToScreen(c));
     d += ` C${cps[1].x},${cps[1].y} ${cps[2].x},${cps[2].y} ${cps[0].x},${cps[0].y}`;
   }

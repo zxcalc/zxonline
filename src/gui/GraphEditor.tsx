@@ -24,7 +24,7 @@ interface GraphEditorProps {
   selectedNodes: Set<number>;
   selectedEdges: Set<number>;
   onSelectionChanged: (selectedNodes: Set<number>, selectedEdges: Set<number>) => void;
-  tikzStyles: Styles;
+  styles: Styles;
   currentNodeStyle: string;
   currentEdgeStyle: string;
   toggleStylePanel: (show: boolean | undefined) => void;
@@ -62,7 +62,7 @@ const GraphEditor = ({
   selectedNodes,
   selectedEdges,
   onSelectionChanged: updateSelection,
-  tikzStyles,
+  styles,
   currentNodeStyle,
   currentEdgeStyle,
   toggleStylePanel,
@@ -872,7 +872,7 @@ const GraphEditor = ({
               <Path
                 data={pathData}
                 graph={graph}
-                tikzStyles={tikzStyles}
+                styles={styles}
                 sceneCoords={sceneCoords}
               />
               {pathData.edges.map(e => {
@@ -883,7 +883,7 @@ const GraphEditor = ({
                     data={data}
                     sourceData={graph.node(data.source)!}
                     targetData={graph.node(data.target)!}
-                    tikzStyles={tikzStyles}
+                    styles={styles}
                     selected={selectedEdges.has(data.id)}
                     highlighted={
                       uiState.highlightPath === data.path || selectedPaths.has(data.path)
@@ -908,7 +908,7 @@ const GraphEditor = ({
             <Node
               key={data.id}
               data={data}
-              tikzStyles={tikzStyles}
+              styles={styles}
               selected={selectedNodes.has(data.id)}
               highlight={uiState.edgeStartNode === data.id || uiState.edgeEndNode === data.id}
               sceneCoords={sceneCoords}

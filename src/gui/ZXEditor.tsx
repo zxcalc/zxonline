@@ -35,11 +35,8 @@ const ZXEditor = ({ initialContent }: ZXEditorProps) => {
   const [showSecondPanel, setShowSecondPanel] = useState<boolean>(true);
 
   const parsedStyles = parseTikzStyles(initialContent.styles);
-  const [tikzStyles, setTikzStyles] = useState<Styles>(
+  const [styles, setStyles] = useState<Styles>(
     (parsedStyles.result ?? new Styles()).setFilename(initialContent.styleFile)
-  );
-  const [tikzStylesError, setTikzStylesError] = useState<boolean>(
-    parsedStyles.result === undefined
   );
 
   // path selection is calculated from selected edges or nodes
@@ -181,7 +178,7 @@ const ZXEditor = ({ initialContent }: ZXEditorProps) => {
               selectedNodes={selectedNodes}
               selectedEdges={selectedEdges}
               onSelectionChanged={handleSelectionChanged}
-              tikzStyles={tikzStyles}
+              styles={styles}
               currentNodeStyle={currentNodeStyle}
               currentEdgeStyle={currentEdgeStyle}
               toggleStylePanel={toggleStylePanel}
@@ -189,9 +186,8 @@ const ZXEditor = ({ initialContent }: ZXEditorProps) => {
           </div>
         </div>
         <StylePanel
-          tikzStyles={tikzStyles}
+          styles={styles}
           editMode={false}
-          error={tikzStylesError}
           currentNodeStyle={currentNodeStyle}
           currentEdgeStyle={currentEdgeStyle}
           onNodeStyleChanged={handleNodeStyleChanged}

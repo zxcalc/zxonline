@@ -125,7 +125,7 @@ function polygonOffset(angle: number, startAngle: number, sides: number, r: numb
 }
 
 export function computeControlPoints(
-  tikzStyles: Styles,
+  styles: Styles,
   sourceData: NodeData,
   targetData: NodeData,
   edgeData: EdgeData
@@ -177,7 +177,7 @@ export function computeControlPoints(
   const cp2 = c2.shift(cpDist * Math.cos(inAngle), cpDist * Math.sin(inAngle));
 
   if ((sourceData.property("style") ?? "none") !== "none") {
-    const style = tikzStyles.style(sourceData.property("style"));
+    const style = styles.style(sourceData.property("style"));
     if ((style.property("tikzit shape") ?? style.property("shape")) === "rectangle") {
       // compute intersection with rectangle
       const offset = polygonOffset(outAngle, Math.PI / 4, 4, 0.2);
@@ -189,7 +189,7 @@ export function computeControlPoints(
   }
 
   if ((targetData.property("style") ?? "none") !== "none") {
-    const style = tikzStyles.style(targetData.property("style"));
+    const style = styles.style(targetData.property("style"));
     if ((style.property("tikzit shape") ?? style.property("shape")) === "rectangle") {
       // compute intersection with rectangle
       const offset = polygonOffset(inAngle, Math.PI / 4, 4, 0.2);

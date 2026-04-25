@@ -10,9 +10,8 @@ import { colorToHex } from "../lib/color";
 import ConfigContext from "./ConfigContext";
 
 interface StylePanelProps {
-  tikzStyles: Styles;
+  styles: Styles;
   editMode: boolean;
-  error: boolean;
   currentNodeStyle: string | undefined;
   currentEdgeStyle: string | undefined;
   onNodeStyleChanged: (style: string, apply: boolean) => void;
@@ -22,9 +21,8 @@ interface StylePanelProps {
 }
 
 const StylePanel = ({
-  tikzStyles,
+  styles,
   editMode,
-  error,
   currentNodeStyle,
   currentEdgeStyle,
   onNodeStyleChanged: setNodeStyle,
@@ -119,7 +117,7 @@ const StylePanel = ({
             marginBottom: "10px",
           }}
         >
-          {tikzStyles.styles.map(style => {
+          {styles.styles.map(style => {
             if (style.isEdgeStyle || (editMode && style.name === "none")) {
               return null;
             }
@@ -156,7 +154,7 @@ const StylePanel = ({
                   />
                   <Node
                     data={node.setProperty("style", style.name)}
-                    tikzStyles={tikzStyles}
+                    styles={styles}
                     sceneCoords={sceneCoords}
                   />
                   <text {...labelProps}>{shortName}</text>
@@ -175,7 +173,7 @@ const StylePanel = ({
             color: "#000",
           }}
         >
-          {tikzStyles.styles.map(style => {
+          {styles.styles.map(style => {
             if (
               (style.name !== "none" && !style.isEdgeStyle) ||
               (editMode && style.name === "none")
@@ -227,7 +225,7 @@ const StylePanel = ({
                     data={edge.setProperty("style", style.name)}
                     sourceData={enode1}
                     targetData={enode2}
-                    tikzStyles={tikzStyles}
+                    styles={styles}
                     sceneCoords={sceneCoords}
                   />
                   <text {...labelProps}>{shortName}</text>

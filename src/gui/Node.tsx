@@ -8,15 +8,15 @@ import ConfigContext from "./ConfigContext";
 
 interface NodeProps {
   data: NodeData;
-  tikzStyles: Styles;
+  styles: Styles;
   selected?: boolean;
   highlight?: boolean;
   sceneCoords: SceneCoords;
 }
 
-const Node = ({ data, tikzStyles, selected, highlight, sceneCoords }: NodeProps) => {
+const Node = ({ data, styles, selected, highlight, sceneCoords }: NodeProps) => {
   const config = useContext(ConfigContext);
-  const style = tikzStyles.style(data.property("style"));
+  const style = styles.style(data.property("style"));
   const coord = sceneCoords.coordToScreen(data.coord);
   const r = sceneCoords.scale * 0.2;
 
