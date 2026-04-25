@@ -4,34 +4,34 @@ html, body {
 }
 
 body {
-  background-color: var(--tikzit-background);
-  color: var(--tikzit-foreground);
-  font-family: var(--tikzit-font-family);
-  font-size: var(--tikzit-font-size);
+  background-color: var(--zx-background);
+  color: var(--zx-foreground);
+  font-family: var(--zx-font-family);
+  font-size: var(--zx-font-size);
   margin: 0;
   padding: 0;
 }
 
 a, a:visited {
-  color: var(--tikzit-link-foreground);
+  color: var(--zx-link-foreground);
 }
 
 a:hover {
-  color: var(--tikzit-link-activeForeground);
+  color: var(--zx-link-activeForeground);
 }
 
 input {
-  background-color: var(--tikzit-input-background);
-  color: var(--tikzit-input-foreground);
-  border: 1px solid var(--tikzit-input-border);
+  background-color: var(--zx-input-background);
+  color: var(--zx-input-foreground);
+  border: 1px solid var(--zx-input-border);
   border-radius: 2px;
   padding: 4px 8px;
-  font-size: var(--tikzit-editor-font-size);
-  font-family: var(--tikzit-editor-font-family);
+  font-size: var(--zx-editor-font-size);
+  font-family: var(--zx-editor-font-family);
 }
 input::selection {
-  background-color: var(--tikzit-editor-selectionBackground);
-  color: var(--tikzit-editor-selectionForeground);
+  background-color: var(--zx-editor-selectionBackground);
+  color: var(--zx-editor-selectionForeground);
 }
 input.error {
   border-color: red !important;
@@ -39,39 +39,39 @@ input.error {
 }
 
 button {
-  background-color: var(--tikzit-button-background);
-  color: var(--tikzit-button-foreground);
+  background-color: var(--zx-button-background);
+  color: var(--zx-button-foreground);
   border: none;
   border-radius: 2px;
   padding: 4px 8px;
-  font-family: var(--tikzit-font-family);
+  font-family: var(--zx-font-family);
   cursor: pointer;
   height: 30px;
 }
 
 button:hover {
-  background-color: var(--tikzit-button-hoverBackground);
+  background-color: var(--zx-button-hoverBackground);
 }
 
 button:disabled {
-  background-color: var(--tikzit-button-disabledBackground);
-  color: var(--tikzit-button-disabledForeground);
+  background-color: var(--zx-button-disabledBackground);
+  color: var(--zx-button-disabledForeground);
   cursor: not-allowed;
 }
 
 button:disabled:hover {
-  background-color: var(--tikzit-button-disabledBackground);
+  background-color: var(--zx-button-disabledBackground);
 }
 
 select {
   width: 100%;
-  background-color: var(--tikzit-input-background);
-  color: var(--tikzit-input-foreground);
-  border: 1px solid var(--tikzit-input-border);
+  background-color: var(--zx-input-background);
+  color: var(--zx-input-foreground);
+  border: 1px solid var(--zx-input-border);
   border-radius: 2px;
   padding: 4px 8px;
-  font-size: var(--tikzit-editor-font-size);
-  font-family: var(--tikzit-editor-font-family);
+  font-size: var(--zx-editor-font-size);
+  font-family: var(--zx-editor-font-family);
   height: 30px;
 }
 
@@ -109,8 +109,8 @@ input[type="range"]::-webkit-slider-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--tikzit-button-background);
-  border: 2px solid var(--tikzit-button-foreground);
+  background: var(--zx-button-background);
+  border: 2px solid var(--zx-button-foreground);
   cursor: pointer;
 }
 
@@ -118,8 +118,8 @@ input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--tikzit-button-background);
-  border: 2px solid var(--tikzit-button-foreground);
+  background: var(--zx-button-background);
+  border: 2px solid var(--zx-button-foreground);
   cursor: pointer;
   border: none;
 }
@@ -134,7 +134,7 @@ input[type="range"]::-moz-range-thumb {
   text-align: right;
   padding-right: 10px;
   font-style: italic;
-  color: var(--tikzit-editorCodeLens-foreground);
+  color: var(--zx-editorCodeLens-foreground);
 }
 
 .button-container {
@@ -165,5 +165,5 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .frame {
-  border: 1px solid var(--tikzit-panel-border);
+  border: 1px solid var(--zx-panel-border);
 }

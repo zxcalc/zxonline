@@ -154,7 +154,7 @@ const ZXEditor = ({ initialContent }: ZXEditorProps) => {
   };
 
   return (
-    <div style={{ height: "100%", width: "100%" }}>
+    <div style={{ height: "100%", width: "100%", overflow: "hidden" }}>
       <Splitpane splitRatio={0.8} orientation="horizontal" showSecondPanel={showSecondPanel}>
         <div style={{ height: "100%" }}>
           <Toolbar

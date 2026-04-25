@@ -4,7 +4,7 @@ import SceneCoords from "../lib/SceneCoords";
 import { colorToHex } from "../lib/color";
 import { computeControlPoints, tangent } from "../lib/curve";
 import Styles from "../lib/Styles";
-import TikzitHostContext from "./TikzitHostContext";
+import ConfigContext from "./ConfigContext";
 
 interface EdgeProps {
   data: EdgeData;
@@ -33,7 +33,7 @@ const Edge = ({
   onControlPointPointerDown,
   sceneCoords,
 }: EdgeProps) => {
-  const host = useContext(TikzitHostContext);
+  const config = useContext(ConfigContext);
   const style = tikzStyles.style(data.property("style"));
   const computed = useMemo(
     () => computeControlPoints(tikzStyles, sourceData, targetData, data),
@@ -96,7 +96,7 @@ const Edge = ({
               fill="none"
               style={{
                 opacity: highlighted ? 0.4 : 0,
-                transition: host.getConfig("enableAnimations") ? "opacity 0.2s ease-out" : "none",
+                transition: config.getConfigBool("enableAnimations") ? "opacity 0.2s ease-out" : "none",
               }}
             />
             <path
@@ -118,7 +118,7 @@ const Edge = ({
               stroke-width={strokeWidth * 5}
               style={{
                 opacity: highlighted ? 0.4 : 0,
-                transition: host.getConfig("enableAnimations") ? "opacity 0.2s ease-out" : "none",
+                transition: config.getConfigBool("enableAnimations") ? "opacity 0.2s ease-out" : "none",
               }}
             />
             <line
@@ -153,7 +153,7 @@ const Edge = ({
         style={{
           pointerEvents: "none",
           opacity: selected ? 1 : 0,
-          transition: host.getConfig("enableAnimations") ? "opacity 0.2s ease-out" : "none",
+          transition: config.getConfigBool("enableAnimations") ? "opacity 0.2s ease-out" : "none",
         }}
       >
         <circle
@@ -164,7 +164,7 @@ const Edge = ({
           stroke-width={2}
           style={{
             stroke: controlColor2,
-            transition: host.getConfig("enableAnimations") ? "stroke 0.2s ease-out" : "none",
+            transition: config.getConfigBool("enableAnimations") ? "stroke 0.2s ease-out" : "none",
           }}
         />
         <line
@@ -175,7 +175,7 @@ const Edge = ({
           stroke-width={2}
           style={{
             stroke: controlColor1,
-            transition: host.getConfig("enableAnimations") ? "stroke 0.2s ease-out" : "none",
+            transition: config.getConfigBool("enableAnimations") ? "stroke 0.2s ease-out" : "none",
           }}
         />
         <circle
@@ -186,7 +186,7 @@ const Edge = ({
           stroke-width={2}
           style={{
             stroke: controlColor2,
-            transition: host.getConfig("enableAnimations") ? "stroke 0.2s ease-out" : "none",
+            transition: config.getConfigBool("enableAnimations") ? "stroke 0.2s ease-out" : "none",
           }}
         />
         <line
@@ -197,7 +197,7 @@ const Edge = ({
           stroke-width={2}
           style={{
             stroke: controlColor1,
-            transition: host.getConfig("enableAnimations") ? "stroke 0.3s ease-out" : "none",
+            transition: config.getConfigBool("enableAnimations") ? "stroke 0.3s ease-out" : "none",
           }}
         />
       </g>

@@ -4,7 +4,7 @@ import SceneCoords from "../lib/SceneCoords";
 import { formatLabel } from "../lib/labels";
 import { colorToHex } from "../lib/color";
 import Styles from "../lib/Styles";
-import TikzitHostContext from "./TikzitHostContext";
+import ConfigContext from "./ConfigContext";
 
 interface NodeProps {
   data: NodeData;
@@ -15,7 +15,7 @@ interface NodeProps {
 }
 
 const Node = ({ data, tikzStyles, selected, highlight, sceneCoords }: NodeProps) => {
-  const host = useContext(TikzitHostContext);
+  const config = useContext(ConfigContext);
   const style = tikzStyles.style(data.property("style"));
   const coord = sceneCoords.coordToScreen(data.coord);
   const r = sceneCoords.scale * 0.2;
@@ -129,7 +129,7 @@ const Node = ({ data, tikzStyles, selected, highlight, sceneCoords }: NodeProps)
           style={{
             pointerEvents: "none",
             opacity: selected ? 1 : 0,
-            transition: host.getConfig("enableAnimations") ? "opacity 0.2s ease-out" : "none",
+            transition: config.getConfigBool("enableAnimations") ? "opacity 0.2s ease-out" : "none",
           }}
         />
       )}
@@ -143,7 +143,7 @@ const Node = ({ data, tikzStyles, selected, highlight, sceneCoords }: NodeProps)
           style={{
             pointerEvents: "none",
             opacity: selected ? 1 : 0,
-            transition: host.getConfig("enableAnimations") ? "opacity 0.2s ease-out" : "none",
+            transition: config.getConfigBool("enableAnimations") ? "opacity 0.2s ease-out" : "none",
           }}
         />
       )}

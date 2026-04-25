@@ -926,7 +926,7 @@ const GraphEditor = ({
             style={{
               opacity: uiState.showSelectionRect ? 1 : 0,
               pointerEvents: "none",
-              transition: config.getConfig("enableAnimations") === "true" ? "opacity 0.3s ease-out" : "none",
+              transition: config.getConfigBool("enableAnimations") ? "opacity 0.3s ease-out" : "none",
             }}
           />
         </g>

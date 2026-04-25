@@ -13,4 +13,8 @@ export default class Config {
             return "";
         }
     }
+
+    public getConfigBool(key: string): boolean {
+        return this.getConfig(key) === "true";
+    }
 }

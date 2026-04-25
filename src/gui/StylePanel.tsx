@@ -164,7 +164,7 @@ const StylePanel = ({
                     style={{
                       pointerEvents: "none",
                       opacity: currentNodeStyle === style.name ? 1 : 0,
-                      transition: config.getConfig("enableAnimations") === "true"
+                      transition: config.getConfigBool("enableAnimations")
                         ? "opacity 0.15s ease-out"
                         : "none",
                     }}
@@ -224,7 +224,7 @@ const StylePanel = ({
                     style={{
                       pointerEvents: "none",
                       opacity: currentEdgeStyle === style.name ? 1 : 0,
-                      transition: config.getConfig("enableAnimations") === "true"
+                      transition: config.getConfigBool("enableAnimations")
                         ? "opacity 0.15s ease-out"
                         : "none",
                     }}
