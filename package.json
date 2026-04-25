@@ -1,7 +1,5 @@
 {
   "name": "zxonline",
-  "publisher": "AleksKissinger",
-  "icon": "./images/tikzit.png",
   "type": "module",
   "displayName": "ZX Online",
   "description": "Learning quantum theory with the ZX-calculus",

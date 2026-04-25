@@ -551,7 +551,7 @@ const GraphEditor = ({
     };
 
     switch (command) {
-      case "vstikzit.gui.cut": {
+      case "zxonline.gui.cut": {
         if (selectedNodes.size !== 0) {
           window.navigator.clipboard.writeText(graph.subgraphFromNodes(selectedNodes).tikz());
           const g = graph.removeNodes(selectedNodes);
@@ -560,13 +560,13 @@ const GraphEditor = ({
         }
         break;
       }
-      case "vstikzit.gui.copy": {
+      case "zxonline.gui.copy": {
         if (selectedNodes.size !== 0) {
           window.navigator.clipboard.writeText(graph.subgraphFromNodes(selectedNodes).tikz());
         }
         break;
       }
-      case "vstikzit.gui.paste": {
+      case "zxonline.gui.paste": {
         const pastedData = await window.navigator.clipboard.readText();
         const parsed = parseTikzPicture(pastedData);
         if (parsed.result !== undefined) {
@@ -589,45 +589,45 @@ const GraphEditor = ({
         }
         break;
       }
-      case "vstikzit.gui.delete": {
+      case "zxonline.gui.delete": {
         const g = graph.removeNodes(selectedNodes).removeEdges(selectedEdges);
         updateGraph(g, true);
         updateSelection(new Set(), new Set());
         break;
       }
-      case "vstikzit.gui.moveLeft": {
+      case "zxonline.gui.moveLeft": {
         moveSelectedNodes(-0.25, 0);
         break;
       }
-      case "vstikzit.gui.moveRight": {
+      case "zxonline.gui.moveRight": {
         moveSelectedNodes(0.25, 0);
         break;
       }
-      case "vstikzit.gui.moveUp": {
+      case "zxonline.gui.moveUp": {
         moveSelectedNodes(0, 0.25);
         break;
       }
-      case "vstikzit.gui.moveDown": {
+      case "zxonline.gui.moveDown": {
         moveSelectedNodes(0, -0.25);
         break;
       }
-      case "vstikzit.gui.nudgeLeft": {
+      case "zxonline.gui.nudgeLeft": {
         moveSelectedNodes(-0.025, 0);
         break;
       }
-      case "vstikzit.gui.nudgeRight": {
+      case "zxonline.gui.nudgeRight": {
         moveSelectedNodes(0.025, 0);
         break;
       }
-      case "vstikzit.gui.nudgeUp": {
+      case "zxonline.gui.nudgeUp": {
         moveSelectedNodes(0, 0.025);
         break;
       }
-      case "vstikzit.gui.nudgeDown": {
+      case "zxonline.gui.nudgeDown": {
         moveSelectedNodes(0, -0.025);
         break;
       }
-      case "vstikzit.gui.joinPaths": {
+      case "zxonline.gui.joinPaths": {
         if (selectedPaths.size > 1) {
           const g = graph.joinPaths(selectedPaths);
           if (!g.equals(graph)) {
@@ -636,7 +636,7 @@ const GraphEditor = ({
         }
         break;
       }
-      case "vstikzit.gui.splitPaths": {
+      case "zxonline.gui.splitPaths": {
         let g = graph;
         for (const p of selectedPaths) {
           g = g.splitPath(p);
@@ -647,7 +647,7 @@ const GraphEditor = ({
         }
         break;
       }
-      case "vstikzit.gui.mergeNodes": {
+      case "zxonline.gui.mergeNodes": {
         if (selectedNodes.size > 0) {
           const g = graph.mergeNodes(selectedNodes);
           if (!g.equals(graph)) {
@@ -656,47 +656,47 @@ const GraphEditor = ({
         }
         break;
       }
-      case "vstikzit.gui.reflectNodesHorizontally": {
+      case "zxonline.gui.reflectNodesHorizontally": {
         updateGraph(graph.reflectNodes(selectedNodes, true), true);
         break;
       }
-      case "vstikzit.gui.reflectNodesVertically": {
+      case "zxonline.gui.reflectNodesVertically": {
         updateGraph(graph.reflectNodes(selectedNodes, false), true);
         break;
       }
-      case "vstikzit.gui.reverseEdges": {
+      case "zxonline.gui.reverseEdges": {
         updateGraph(graph.reverseEdges(selectedEdges), true);
         break;
       }
-      case "vstikzit.gui.bringToFront": {
+      case "zxonline.gui.bringToFront": {
         const g = graph.reorderElements(selectedNodes, selectedPaths, "front");
         updateGraph(g, true);
         break;
       }
-      case "vstikzit.gui.sendToBack": {
+      case "zxonline.gui.sendToBack": {
         const g = graph.reorderElements(selectedNodes, selectedPaths, "back");
         updateGraph(g, true);
         break;
       }
-      case "vstikzit.gui.bringForward": {
+      case "zxonline.gui.bringForward": {
         const g = graph.reorderElements(selectedNodes, selectedPaths, "forward");
         updateGraph(g, true);
         break;
       }
-      case "vstikzit.gui.sendBackward": {
+      case "zxonline.gui.sendBackward": {
         const g = graph.reorderElements(selectedNodes, selectedPaths, "backward");
         updateGraph(g, true);
         break;
       }
-      case "vstikzit.gui.selectAll": {
+      case "zxonline.gui.selectAll": {
         updateSelection(new Set(graph.nodeIds), new Set());
         break;
       }
-      case "vstikzit.gui.deselectAll": {
+      case "zxonline.gui.deselectAll": {
         updateSelection(new Set(), new Set());
         break;
       }
-      case "vstikzit.gui.extendSelectionLeft": {
+      case "zxonline.gui.extendSelectionLeft": {
         if (selectedNodes.size !== 0) {
           const maxX = Array.from(selectedNodes)
             .map(n => graph.node(n)?.coord.x ?? 0)
@@ -708,7 +708,7 @@ const GraphEditor = ({
         }
         break;
       }
-      case "vstikzit.gui.extendSelectionRight": {
+      case "zxonline.gui.extendSelectionRight": {
         if (selectedNodes.size !== 0) {
           const minX = Array.from(selectedNodes)
             .map(n => graph.node(n)?.coord.x ?? 0)
@@ -720,7 +720,7 @@ const GraphEditor = ({
         }
         break;
       }
-      case "vstikzit.gui.extendSelectionUp": {
+      case "zxonline.gui.extendSelectionUp": {
         if (selectedNodes.size !== 0) {
           const minY = Array.from(selectedNodes)
             .map(n => graph.node(n)?.coord.y ?? 0)
@@ -732,7 +732,7 @@ const GraphEditor = ({
         }
         break;
       }
-      case "vstikzit.gui.extendSelectionDown": {
+      case "zxonline.gui.extendSelectionDown": {
         if (selectedNodes.size !== 0) {
           const maxY = Array.from(selectedNodes)
             .map(n => graph.node(n)?.coord.y ?? 0)
@@ -744,30 +744,30 @@ const GraphEditor = ({
         }
         break;
       }
-      case "vstikzit.gui.selectTool": {
+      case "zxonline.gui.selectTool": {
         setTool("select");
         break;
       }
-      case "vstikzit.gui.nodeTool": {
+      case "zxonline.gui.nodeTool": {
         setTool("vertex");
         break;
       }
-      case "vstikzit.gui.edgeTool": {
+      case "zxonline.gui.edgeTool": {
         setTool("edge");
         break;
       }
-      case "vstikzit.gui.toggleStylePanel": {
+      case "zxonline.gui.toggleStylePanel": {
         toggleStylePanel(undefined);
         break;
       }
-      case "vstikzit.gui.zoomIn": {
+      case "zxonline.gui.zoomIn": {
         const coords = sceneCoords.zoomIn();
         if (coords.scale <= 1024) {
           updateSceneCoords(coords);
         }
         break;
       }
-      case "vstikzit.gui.zoomOut": {
+      case "zxonline.gui.zoomOut": {
         const coords = sceneCoords.zoomOut();
         const viewport = document.getElementById("graph-editor-viewport")!;
         if (
@@ -778,7 +778,7 @@ const GraphEditor = ({
         }
         break;
       }
-      case "vstikzit.gui.centerViewport": {
+      case "zxonline.gui.centerViewport": {
         const viewport = document.getElementById("graph-editor-viewport")!;
         viewport.scrollLeft = sceneCoords.originX - viewport.clientWidth / 2;
         viewport.scrollTop = sceneCoords.originY - viewport.clientHeight / 2;
@@ -805,7 +805,7 @@ const GraphEditor = ({
     // handle Ctrl+A / Cmd+A for select all, in order to prevent text selection
     if (event.getModifierState(window.navigator.platform.includes("Mac") ? "Meta" : "Control")) {
       if (event.key === "a") {
-        handleCommand("vstikzit.gui.selectAll");
+        handleCommand("zxonline.gui.selectAll");
         event.preventDefault();
         event.stopPropagation();
         return;

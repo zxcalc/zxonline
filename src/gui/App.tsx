@@ -1,4 +1,4 @@
-// Main entry point for the browser version of TikZiT
+// Main entry point for ZX Online
 
 import { render } from "preact";
 import ZXEditor, { TikzEditorContent } from "./ZXEditor";
