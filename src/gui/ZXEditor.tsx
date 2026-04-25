@@ -156,7 +156,14 @@ const ZXEditor = ({ initialContent }: ZXEditorProps) => {
   return (
     <div style={{ height: "100%", width: "100%", overflow: "hidden" }}>
       <Splitpane splitRatio={0.8} orientation="horizontal" showSecondPanel={showSecondPanel}>
-        <div style={{ height: "100%" }}>
+        <div
+          style={{
+            height: "100%",
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <Toolbar
             tool={tool}
             onToolChanged={t => {
@@ -164,20 +171,22 @@ const ZXEditor = ({ initialContent }: ZXEditorProps) => {
               document.getElementById("graph-editor")?.focus();
             }}
           />
-          <GraphEditor
-            tool={tool}
-            onToolChanged={setTool}
-            enabled={enabled}
-            graph={graph}
-            onGraphChange={handleGraphChange}
-            selectedNodes={selectedNodes}
-            selectedEdges={selectedEdges}
-            onSelectionChanged={handleSelectionChanged}
-            tikzStyles={tikzStyles}
-            currentNodeStyle={currentNodeStyle}
-            currentEdgeStyle={currentEdgeStyle}
-            toggleStylePanel={toggleStylePanel}
-          />
+          <div style={{ flex: "1 1 auto", minHeight: 0 }}>
+            <GraphEditor
+              tool={tool}
+              onToolChanged={setTool}
+              enabled={enabled}
+              graph={graph}
+              onGraphChange={handleGraphChange}
+              selectedNodes={selectedNodes}
+              selectedEdges={selectedEdges}
+              onSelectionChanged={handleSelectionChanged}
+              tikzStyles={tikzStyles}
+              currentNodeStyle={currentNodeStyle}
+              currentEdgeStyle={currentEdgeStyle}
+              toggleStylePanel={toggleStylePanel}
+            />
+          </div>
         </div>
         <StylePanel
           tikzStyles={tikzStyles}

@@ -77,6 +77,8 @@ const Splitpane = ({ children, splitRatio = 0.5, orientation = "horizontal", sho
         flexDirection: orientation === "horizontal" ? "row" : "column",
         width: "100%",
         height: "100%",
+        minWidth: 0,
+        minHeight: 0,
         overflow: "hidden",
       }}
     >
@@ -85,6 +87,8 @@ const Splitpane = ({ children, splitRatio = 0.5, orientation = "horizontal", sho
           flex: "none",
           width: orientation === "horizontal" && showSecondPanel ? `${percent}%` : "100%",
           height: orientation !== "horizontal" && showSecondPanel ? `${percent}%` : "100%",
+          minWidth: 0,
+          minHeight: 0,
           overflow: "hidden",
           display: "block",
         }}
@@ -121,6 +125,8 @@ const Splitpane = ({ children, splitRatio = 0.5, orientation = "horizontal", sho
       <div
         style={{
           flex: "1",
+          minWidth: 0,
+          minHeight: 0,
           overflow: "hidden",
           display: showSecondPanel ? "block" : "none",
         }}

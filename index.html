@@ -11,8 +11,8 @@
         const initialContent = {
           config: { enableAnimations: true },
           document: `\\begin{tikzpicture}\n\\end{tikzpicture}`,
-          styles: `\\tikzstyle{z}=[circle,fill=green,minimum size=4pt,inner sep=0pt]
-                    \\tikzstyle{x}=[circle,fill=red,minimum size=4pt,inner sep=0pt]`,
+          styles: `\\tikzstyle{z}=[circle,fill={rgb,255: red,216; green,248; blue,216},minimum size=4pt,inner sep=0pt]
+                    \\tikzstyle{x}=[circle,fill={rgb,255: red,221; green,165; blue,165},minimum size=4pt,inner sep=0pt]`,
           styleFile: "styles.tikzstyles",
         };
         renderApp(container, initialContent);

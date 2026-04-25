@@ -11,11 +11,11 @@
   },
   "version": "0.1.0",
   "scripts": {
+    "dev": "vite",
     "build": "vite build",
     "build-test": "vite build --mode test",
     "watch-test": "vite build --mode test --watch",
     "lint": "tsc && eslint .",
-    "preview": "concurrently \"vite build --watch\" \"vite preview\"",
     "test": "mocha dist/tests.js",
     "pretest": "npm run build-test",
     "analyze": "vite-bundle-analyzer"

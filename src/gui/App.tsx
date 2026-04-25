@@ -4,6 +4,8 @@ import { render } from "preact";
 import ZXEditor, { TikzEditorContent } from "./ZXEditor";
 import ConfigContext from "./ConfigContext";
 import Config from "../lib/Config";
+import "./defaultvars.css";
+import "./gui.css";
 
 interface AppProps {
   initialContent: TikzEditorContent;

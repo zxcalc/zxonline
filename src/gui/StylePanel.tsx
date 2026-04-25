@@ -75,45 +75,30 @@ const StylePanel = ({
       }}
     >
       {!editMode && (
-        <>
-          <div
-            style={{
-              marginBottom: "2px",
-              marginTop: "2px",
-              marginLeft: "0px",
-              marginRight: "15px",
-            }}
-          >
-            <input
-              id="label-field"
-              value={currentNodeLabel ?? ""}
-              onInput={e =>
-                setCurrentNodeLabel !== undefined &&
-                setCurrentNodeLabel((e.target as HTMLInputElement).value)
+        <div
+          style={{
+            marginBottom: "2px",
+            marginTop: "2px",
+            marginLeft: "0px",
+            marginRight: "15px",
+          }}
+        >
+          <input
+            id="label-field"
+            value={currentNodeLabel ?? ""}
+            onInput={e =>
+              setCurrentNodeLabel !== undefined &&
+              setCurrentNodeLabel((e.target as HTMLInputElement).value)
+            }
+            onKeyDown={e => {
+              if (e.key === "Enter") {
+                document.getElementById("graph-editor")?.focus();
               }
-              onKeyDown={e => {
-                if (e.key === "Enter") {
-                  document.getElementById("graph-editor")?.focus();
-                }
-              }}
-              disabled={currentNodeLabel === undefined}
-              className={isValidDelimString("{" + currentNodeLabel + "}") ? "" : "error"}
-            />
-          </div>
-          <div class="style-info">
-            <span
-              style={{
-                color: error
-                  ? "var(--tikzit-errorForeground)"
-                  : "var(--tikzit-editorCodeLens-foreground)",
-                fontStyle: "italic",
-                fontSize: "0.9em",
-              }}
-            >
-              {tikzStyles.filename !== "" ? tikzStyles.filename : "no tikzstyles"}
-            </span>
-          </div>
-        </>
+            }}
+            disabled={currentNodeLabel === undefined}
+            className={isValidDelimString("{" + currentNodeLabel + "}") ? "" : "error"}
+          />
+        </div>
       )}
 
       <div

@@ -839,8 +839,9 @@ const GraphEditor = ({
       id="graph-editor-viewport"
       class="frame"
       style={{
-        height: "calc(100% - 50px)",
-        maxHeight: "calc(100% - 50px)",
+        height: "100%",
+        maxHeight: "100%",
+        minHeight: 0,
         overflowX: "scroll",
         overflowY: "scroll",
       }}
