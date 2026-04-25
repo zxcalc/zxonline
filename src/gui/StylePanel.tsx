@@ -6,8 +6,8 @@ import Edge from "./Edge";
 import { isValidDelimString } from "../lib/TikzParser";
 import { SVGAttributes } from "preact";
 import { useContext } from "preact/hooks";
-import TikzitHostContext from "./TikzitHostContext";
 import { colorToHex } from "../lib/color";
+import ConfigContext from "./ConfigContext";
 
 interface StylePanelProps {
   tikzStyles: Styles;
@@ -19,8 +19,6 @@ interface StylePanelProps {
   onEdgeStyleChanged: (style: string, apply: boolean) => void;
   currentNodeLabel?: string | undefined;
   onCurrentNodeLabelChanged?: (label: string) => void;
-  onEditStyles?: (e: Event) => void;
-  onRefreshStyles?: (e: Event) => void;
 }
 
 const StylePanel = ({
@@ -33,10 +31,8 @@ const StylePanel = ({
   onEdgeStyleChanged: setEdgeStyle,
   currentNodeLabel,
   onCurrentNodeLabelChanged: setCurrentNodeLabel,
-  onEditStyles,
-  onRefreshStyles,
 }: StylePanelProps) => {
-  const host = useContext(TikzitHostContext);
+  const config = useContext(ConfigContext);
   const sceneCoords = new SceneCoords()
     .setZoom(0)
     .setLeft(0.35)
@@ -105,12 +101,6 @@ const StylePanel = ({
             />
           </div>
           <div class="style-info">
-            <a href="#" title="Edit styles" onClick={onEditStyles}>
-              &#9998;
-            </a>
-            <a href="#" title="Refresh styles" onClick={onRefreshStyles}>
-              &#10227;
-            </a>
             <span
               style={{
                 color: error
@@ -174,7 +164,7 @@ const StylePanel = ({
                     style={{
                       pointerEvents: "none",
                       opacity: currentNodeStyle === style.name ? 1 : 0,
-                      transition: host.getConfig("enableAnimations")
+                      transition: config.getConfig("enableAnimations") === "true"
                         ? "opacity 0.15s ease-out"
                         : "none",
                     }}
@@ -234,7 +224,7 @@ const StylePanel = ({
                     style={{
                       pointerEvents: "none",
                       opacity: currentEdgeStyle === style.name ? 1 : 0,
-                      transition: host.getConfig("enableAnimations")
+                      transition: config.getConfig("enableAnimations") === "true"
                         ? "opacity 0.15s ease-out"
                         : "none",
                     }}

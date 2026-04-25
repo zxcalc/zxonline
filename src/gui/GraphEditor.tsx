@@ -11,7 +11,7 @@ import { Coord, EdgeData, NodeData, PathData } from "../lib/Data";
 import { shortenLine } from "../lib/curve";
 import { parseTikzPicture } from "../lib/TikzParser";
 import Path from "./Path";
-import TikzitHostContext from "./TikzitHostContext";
+import ConfigContext from "./ConfigContext";
 
 export type GraphTool = "select" | "vertex" | "edge";
 
@@ -24,7 +24,6 @@ interface GraphEditorProps {
   selectedNodes: Set<number>;
   selectedEdges: Set<number>;
   onSelectionChanged: (selectedNodes: Set<number>, selectedEdges: Set<number>) => void;
-  onViewTikz: () => void;
   tikzStyles: Styles;
   currentNodeStyle: string;
   currentEdgeStyle: string;
@@ -63,13 +62,12 @@ const GraphEditor = ({
   selectedNodes,
   selectedEdges,
   onSelectionChanged: updateSelection,
-  onViewTikz: viewTikz,
   tikzStyles,
   currentNodeStyle,
   currentEdgeStyle,
   toggleStylePanel,
 }: GraphEditorProps) => {
-  const host = useContext(TikzitHostContext);
+  const config = useContext(ConfigContext);
   const [sceneCoords, setSceneCoords] = useState<SceneCoords>(new SceneCoords());
   const [uiState, updateUIState] = useReducer(uiStateReducer, {});
   const numClicks = useRef<number>(0);
@@ -83,8 +81,8 @@ const GraphEditor = ({
     selectedEdges.size > 0
       ? Array.from(selectedEdges).map(e => graph.edge(e)!.path)
       : graph.edges
-          .filter(d => selectedNodes.has(d.source) && selectedNodes.has(d.target))
-          .map(d => d.path)
+        .filter(d => selectedNodes.has(d.source) && selectedNodes.has(d.target))
+        .map(d => d.path)
   );
 
   useEffect(() => {
@@ -104,9 +102,9 @@ const GraphEditor = ({
     drawGrid(
       editor,
       initCoords,
-      host.getConfig("axisColor"),
-      host.getConfig("majorGridColor"),
-      host.getConfig("minorGridColor")
+      config.getConfig("axisColor"),
+      config.getConfig("majorGridColor"),
+      config.getConfig("minorGridColor")
     );
 
     const resizeObserver = new ResizeObserver(() => {
@@ -127,10 +125,6 @@ const GraphEditor = ({
     };
   }, []);
 
-  useEffect(() => {
-    host.onCommand(command => handleCommand(command));
-  });
-
   const mousePositionToCoord = (event: TargetedMouseEvent<SVGSVGElement>): Coord => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -146,9 +140,9 @@ const GraphEditor = ({
         drawGrid(
           editor,
           coords,
-          host.getConfig("axisColor"),
-          host.getConfig("majorGridColor"),
-          host.getConfig("minorGridColor")
+          config.getConfig("axisColor"),
+          config.getConfig("majorGridColor"),
+          config.getConfig("minorGridColor")
         );
 
         const viewport = document.getElementById("graph-editor-viewport")!;
@@ -762,10 +756,6 @@ const GraphEditor = ({
         setTool("edge");
         break;
       }
-      case "vstikzit.gui.viewTikzSource": {
-        viewTikz();
-        break;
-      }
       case "vstikzit.gui.toggleStylePanel": {
         toggleStylePanel(undefined);
         break;
@@ -936,7 +926,7 @@ const GraphEditor = ({
             style={{
               opacity: uiState.showSelectionRect ? 1 : 0,
               pointerEvents: "none",
-              transition: host.getConfig("enableAnimations") ? "opacity 0.3s ease-out" : "none",
+              transition: config.getConfig("enableAnimations") === "true" ? "opacity 0.3s ease-out" : "none",
             }}
           />
         </g>

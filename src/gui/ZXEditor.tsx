@@ -5,15 +5,12 @@ import { GraphTool } from "./GraphEditor";
 import Graph from "../lib/Graph";
 import {
   isValidDelimString,
-  ParseError,
-  parseTikzPicture,
   parseTikzStyles,
 } from "../lib/TikzParser";
 import StylePanel from "./StylePanel";
 import Styles from "../lib/Styles";
 import Toolbar from "./Toolbar";
 import Splitpane from "./Splitpane";
-import TikzitHostContext from "./TikzitHostContext";
 
 interface TikzEditorContent {
   config: { [key: string]: any };
@@ -22,16 +19,13 @@ interface TikzEditorContent {
   styles: string;
 }
 
-interface TikzEditorProps {
+interface ZXEditorProps {
   initialContent: TikzEditorContent;
 }
 
-const TikzEditor = ({ initialContent }: TikzEditorProps) => {
-  const host = useContext(TikzitHostContext);
-  const parsed = parseTikzPicture(initialContent.document);
-  const [graph, setGraph] = useState<Graph>(parsed.result ?? new Graph());
-  const [enabled, setEnabled] = useState<boolean>(parsed.result !== undefined);
-  const [parseErrors, setParseErrors] = useState<ParseError[]>(parsed.errors);
+const ZXEditor = ({ initialContent }: ZXEditorProps) => {
+  const [graph, setGraph] = useState<Graph>(new Graph());
+  const [enabled, setEnabled] = useState<boolean>(true);
   const [tool, setTool] = useState<GraphTool>("select");
   const [currentNodeLabel, setCurrentNodeLabel] = useState<string | undefined>(undefined);
   const [currentNodeStyle, setCurrentNodeStyle] = useState<string>("none");
@@ -53,49 +47,13 @@ const TikzEditor = ({ initialContent }: TikzEditorProps) => {
     selectedEdges.size > 0
       ? Array.from(selectedEdges).map(e => graph.edge(e)!.path)
       : graph.edges
-          .filter(d => selectedNodes.has(d.source) && selectedNodes.has(d.target))
-          .map(d => d.path)
+        .filter(d => selectedNodes.has(d.source) && selectedNodes.has(d.target))
+        .map(d => d.path)
   );
 
-  useEffect(() => {
-    host.onUpdateToGui(source => {
-      tryParseGraph(source);
-    });
-
-    host.onTikzStylesUpdated((filename, source) => {
-      const parsed = parseTikzStyles(source);
-      if (parsed.result !== undefined) {
-        const s = parsed.result.setFilename(filename);
-        setTikzStyles(s);
-        setTikzStylesError(false);
-      } else {
-        setTikzStylesError(true);
-      }
-    });
-  });
-
-  useEffect(() => {
-    host.setErrors(parseErrors);
-  }, [parseErrors]);
 
   const updateFromGui = (tikz: string) => {
-    if (enabled) {
-      host.updateFromGui(tikz);
-    }
-  };
-
-  const refreshTikzStyles = (e: Event) => {
-    if (e) {
-      e.preventDefault();
-    }
-    host.refreshTikzStyles();
-  };
-
-  const openTikzStyles = (e: Event) => {
-    if (e) {
-      e.preventDefault();
-    }
-    host.openTikzStyles();
+    // stub
   };
 
   const toggleStylePanel = (show: boolean | undefined = undefined) => {
@@ -103,33 +61,6 @@ const TikzEditor = ({ initialContent }: TikzEditorProps) => {
       setShowSecondPanel(show);
     } else {
       setShowSecondPanel(!showSecondPanel);
-    }
-  };
-
-  const tryParseGraph = (tikz: string) => {
-    const parsed = parseTikzPicture(tikz);
-    setParseErrors(parsed.errors);
-    if (parsed.result !== undefined) {
-      const g = parsed.result;
-      g.inheritDataFrom(graph);
-      setEnabled(true);
-      setGraph(g);
-
-      // update selection to remove any nodes/edges that no longer exist. n.b. we don't use handleSelectionChanged
-      // as "setGraph" is async and hasn't updated the graph yet
-      const newSelectedNodes = new Set(Array.from(selectedNodes).filter(id => g.hasNode(id)));
-      setSelectedNodes(newSelectedNodes);
-      setSelectedEdges(sel => new Set(Array.from(sel).filter(id => g.hasEdge(id))));
-      if (newSelectedNodes.size === 1) {
-        const [n] = newSelectedNodes;
-        setCurrentNodeLabel(g.node(n)?.label);
-      } else {
-        setCurrentNodeLabel(undefined);
-      }
-    } else {
-      setEnabled(false);
-      setSelectedNodes(new Set());
-      setSelectedEdges(new Set());
     }
   };
 
@@ -222,25 +153,6 @@ const TikzEditor = ({ initialContent }: TikzEditorProps) => {
     }
   };
 
-  const handleViewTikz = () => {
-    let position = { line: 0, column: 0 };
-    if (selectedNodes.size > 0) {
-      const [node] = selectedNodes;
-      const pos = graph.tikzWithPosition(node, undefined)[1]!;
-      if (pos !== undefined) {
-        position = pos;
-      }
-    } else if (selectedEdges.size > 0) {
-      const [edge] = selectedEdges;
-      const pos = graph.tikzWithPosition(undefined, edge)[1]!;
-      if (pos !== undefined) {
-        position = pos;
-      }
-    }
-
-    host.openCodeEditor(position);
-  };
-
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Splitpane splitRatio={0.8} orientation="horizontal" showSecondPanel={showSecondPanel}>
@@ -261,7 +173,6 @@ const TikzEditor = ({ initialContent }: TikzEditorProps) => {
             selectedNodes={selectedNodes}
             selectedEdges={selectedEdges}
             onSelectionChanged={handleSelectionChanged}
-            onViewTikz={handleViewTikz}
             tikzStyles={tikzStyles}
             currentNodeStyle={currentNodeStyle}
             currentEdgeStyle={currentEdgeStyle}
@@ -278,13 +189,11 @@ const TikzEditor = ({ initialContent }: TikzEditorProps) => {
           onEdgeStyleChanged={handleEdgeStyleChanged}
           currentNodeLabel={currentNodeLabel}
           onCurrentNodeLabelChanged={handleCurrentNodeLabelChanged}
-          onEditStyles={openTikzStyles}
-          onRefreshStyles={refreshTikzStyles}
         />
       </Splitpane>
     </div>
   );
 };
 
-export default TikzEditor;
+export default ZXEditor;
 export { TikzEditorContent };
