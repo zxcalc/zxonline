@@ -10,7 +10,6 @@ import { colorToHex } from "../lib/color";
 import ConfigContext from "./ConfigContext";
 
 interface StylePanelProps {
-  styles: Styles;
   editMode: boolean;
   currentNodeStyle: string | undefined;
   currentEdgeStyle: string | undefined;
@@ -21,7 +20,6 @@ interface StylePanelProps {
 }
 
 const StylePanel = ({
-  styles,
   editMode,
   currentNodeStyle,
   currentEdgeStyle,
@@ -31,6 +29,7 @@ const StylePanel = ({
   onCurrentNodeLabelChanged: setCurrentNodeLabel,
 }: StylePanelProps) => {
   const config = useContext(ConfigContext);
+  const styles = config.styles();
   const sceneCoords = new SceneCoords()
     .setZoom(0)
     .setLeft(0.35)
@@ -154,7 +153,6 @@ const StylePanel = ({
                   />
                   <Node
                     data={node.setProperty("style", style.name)}
-                    styles={styles}
                     sceneCoords={sceneCoords}
                   />
                   <text {...labelProps}>{shortName}</text>
@@ -225,7 +223,6 @@ const StylePanel = ({
                     data={edge.setProperty("style", style.name)}
                     sourceData={enode1}
                     targetData={enode2}
-                    styles={styles}
                     sceneCoords={sceneCoords}
                   />
                   <text {...labelProps}>{shortName}</text>

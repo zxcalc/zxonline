@@ -1,19 +1,21 @@
+import { useContext } from "preact/hooks";
 import { colorToHex } from "../lib/color";
 import { computeControlPoints } from "../lib/curve";
 import { PathData, StyleData } from "../lib/Data";
 import Graph from "../lib/Graph";
 import SceneCoords from "../lib/SceneCoords";
-import Styles from "../lib/Styles";
+import ConfigContext from "./ConfigContext";
 
 interface PathProps {
   data: PathData;
   graph: Graph;
-  styles: Styles;
   sceneCoords: SceneCoords;
 }
 
-const Path = ({ data, graph, styles, sceneCoords }: PathProps) => {
+const Path = ({ data, graph, sceneCoords }: PathProps) => {
   if (data.edges.length === 0) return <></>;
+  const config = useContext(ConfigContext);
+  const styles = config.styles();
   let edgeData = graph.edge(data.edges[0])!;
   const sty = styles.style(edgeData.property("style"));
   const fillColor = colorToHex(sty.property("tikzit fill") ?? sty.property("fill"));

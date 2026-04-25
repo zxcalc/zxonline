@@ -8,14 +8,14 @@ import ConfigContext from "./ConfigContext";
 
 interface NodeProps {
   data: NodeData;
-  styles: Styles;
   selected?: boolean;
   highlight?: boolean;
   sceneCoords: SceneCoords;
 }
 
-const Node = ({ data, styles, selected, highlight, sceneCoords }: NodeProps) => {
+const Node = ({ data, selected, highlight, sceneCoords }: NodeProps) => {
   const config = useContext(ConfigContext);
+  const styles = config.styles();
   const style = styles.style(data.property("style"));
   const coord = sceneCoords.coordToScreen(data.coord);
   const r = sceneCoords.scale * 0.2;

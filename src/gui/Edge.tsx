@@ -10,7 +10,6 @@ interface EdgeProps {
   data: EdgeData;
   sourceData: NodeData;
   targetData: NodeData;
-  styles: Styles;
   selected?: boolean;
   highlighted?: boolean;
   onPointerDown?: () => void;
@@ -24,7 +23,6 @@ const Edge = ({
   data,
   sourceData,
   targetData,
-  styles,
   selected,
   highlighted,
   onPointerDown,
@@ -34,6 +32,7 @@ const Edge = ({
   sceneCoords,
 }: EdgeProps) => {
   const config = useContext(ConfigContext);
+  const styles = config.styles();
   const style = styles.style(data.property("style"));
   const computed = useMemo(
     () => computeControlPoints(styles, sourceData, targetData, data),

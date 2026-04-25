@@ -11,19 +11,11 @@ import StylePanel from "./StylePanel";
 import Styles from "../lib/Styles";
 import Toolbar from "./Toolbar";
 import Splitpane from "./Splitpane";
+import ConfigContext from "./ConfigContext";
 
-interface TikzEditorContent {
-  config: { [key: string]: any };
-  document: string;
-  styleFile: string;
-  styles: string;
-}
 
-interface ZXEditorProps {
-  initialContent: TikzEditorContent;
-}
 
-const ZXEditor = ({ initialContent }: ZXEditorProps) => {
+const ZXEditor = () => {
   const [graph, setGraph] = useState<Graph>(new Graph());
   const [enabled, setEnabled] = useState<boolean>(true);
   const [tool, setTool] = useState<GraphTool>("select");
@@ -34,10 +26,8 @@ const ZXEditor = ({ initialContent }: ZXEditorProps) => {
   const [selectedEdges, setSelectedEdges] = useState<Set<number>>(new Set());
   const [showSecondPanel, setShowSecondPanel] = useState<boolean>(true);
 
-  const parsedStyles = parseTikzStyles(initialContent.styles);
-  const [styles, setStyles] = useState<Styles>(
-    (parsedStyles.result ?? new Styles()).setFilename(initialContent.styleFile)
-  );
+  const config = useContext(ConfigContext);
+  const styles = config.styles();
 
   // path selection is calculated from selected edges or nodes
   const selectedPaths = new Set(
@@ -186,7 +176,6 @@ const ZXEditor = ({ initialContent }: ZXEditorProps) => {
           </div>
         </div>
         <StylePanel
-          styles={styles}
           editMode={false}
           currentNodeStyle={currentNodeStyle}
           currentEdgeStyle={currentEdgeStyle}
@@ -201,4 +190,3 @@ const ZXEditor = ({ initialContent }: ZXEditorProps) => {
 };
 
 export default ZXEditor;
-export { TikzEditorContent };

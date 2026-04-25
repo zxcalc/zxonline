@@ -872,7 +872,6 @@ const GraphEditor = ({
               <Path
                 data={pathData}
                 graph={graph}
-                styles={styles}
                 sceneCoords={sceneCoords}
               />
               {pathData.edges.map(e => {
@@ -883,7 +882,6 @@ const GraphEditor = ({
                     data={data}
                     sourceData={graph.node(data.source)!}
                     targetData={graph.node(data.target)!}
-                    styles={styles}
                     selected={selectedEdges.has(data.id)}
                     highlighted={
                       uiState.highlightPath === data.path || selectedPaths.has(data.path)
@@ -908,7 +906,6 @@ const GraphEditor = ({
             <Node
               key={data.id}
               data={data}
-              styles={styles}
               selected={selectedNodes.has(data.id)}
               highlight={uiState.edgeStartNode === data.id || uiState.edgeEndNode === data.id}
               sceneCoords={sceneCoords}
