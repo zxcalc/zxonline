@@ -1,1 +1,3 @@
-ZX Online - learning quantum theory with the ZX calculus
+# ZX Online
+
+An web platform for ZX calculus and quantum education.
