@@ -22,7 +22,7 @@ One consequence of this is that when we check whether a ZX rule applies, we shou
 
 ## Code organisation and style
 
-ZX Online is implemented in Typescript. Data models and utility functions are implemented in [src/lib](https://github.com/zxcalc/zxonline/tree/main/src/lib), GUI code is in [src/gui](https://github.com/zxcalc/zxonline/tree/main/src/gui), and [mocha](https://mochajs.org/) unit tests are in [src/test](https://github.com/zxcalc/zxonline/tree/main/src/test)
+ZX Online is implemented in Typescript. Data models and utility functions are implemented in [src/lib](https://github.com/zxcalc/zxonline/tree/main/src/lib), GUI code is in [src/gui](https://github.com/zxcalc/zxonline/tree/main/src/gui), and [mocha](https://mochajs.org/) unit tests are in [src/test](https://github.com/zxcalc/zxonline/tree/main/src/test).
 
 The main datastructures are immutable: update methods make a shallow copy and return a new version of the updated structure. This is convenient for hooking up to a reactive GUI and maintaining history and backtracking functionality, but it can take some getting used to. For example:
 
@@ -41,3 +41,9 @@ const g2 = new Graph()
   .addNodeWithData(new NodeData().setId(0))
   .addNodeWithData(new NodeData().setId(1));
 ```
+
+## Design principles
+
+- No user manual required: if something isn't obvious, it should be taught, preferably with nice UI cues/animations rather than words.
+- Prefer context and gestures to tools.
+- Easy to do things for beginners and easy to do things _fast_ for experts.
