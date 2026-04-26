@@ -1,6 +1,6 @@
 import { createToken, Lexer, EmbeddedActionsParser } from "chevrotain";
 import Graph from "./Graph";
-import { Coord, GraphData, EdgeData, NodeData, PathData, StyleData } from "./Data";
+import { Coord, GraphData, EdgeData, NodeData, WireData, StyleData } from "./Data";
 import Styles from "./Styles";
 
 function matchDelimString(text: string, startOffset: number): [string] | null {
@@ -144,8 +144,8 @@ class TikzParser extends EmbeddedActionsParser {
   private d?: any;
   // the parser allows arbitrary node names in tikz files, but only stores ids. This field maps names to generated ids
   private nodeIds?: Map<string, number>;
-  // the current path being parsed, used for multi-part edges
-  private currentPath?: PathData;
+  // the current wire being parsed, used for multi-part edges
+  private currentWire?: WireData;
 
   constructor() {
     super(allTokens);
@@ -431,14 +431,14 @@ class TikzParser extends EmbeddedActionsParser {
 
           this.ACTION(() => {
             const d = this.d as EdgeData;
-            if (this.currentPath && this.currentPath.edges.length > 0) {
-              const firstEdge = this.currentPath.edges[0];
+            if (this.currentWire && this.currentWire.edges.length > 0) {
+              const firstEdge = this.currentWire.edges[0];
               this.d = d.setTarget(this.graph?.edge(firstEdge)?.source ?? -1);
             } else {
               throw new ParseError(
                 cycleToken.startLine ?? 1,
                 cycleToken.startColumn ?? 1,
-                "'cycle' can only be used in paths of length 2 or more"
+                "'cycle' can only be used in wires of length 2 or more"
               );
             }
           });
@@ -448,9 +448,9 @@ class TikzParser extends EmbeddedActionsParser {
 
     this.ACTION(() => {
       let d = this.d as EdgeData;
-      if (this.graph !== undefined && this.currentPath !== undefined) {
-        d = d.setPath(this.currentPath.id);
-        this.currentPath = this.currentPath.addEdge(d.id);
+      if (this.graph !== undefined && this.currentWire !== undefined) {
+        d = d.setWire(this.currentWire.id);
+        this.currentWire = this.currentWire.addEdge(d.id);
         this.graph = this.graph.addEdgeWithData(d);
         let d1 = new EdgeData().setId(this.graph.freshEdgeId).setSource(d.target);
 
@@ -468,7 +468,7 @@ class TikzParser extends EmbeddedActionsParser {
     this.CONSUME(DrawCmd);
 
     this.ACTION(() => {
-      this.currentPath = new PathData().setId(this.graph?.freshPathId ?? 0);
+      this.currentWire = new WireData().setId(this.graph?.freshWireId ?? 0);
     });
 
     this.SUBRULE(this.edgeSource);
@@ -476,9 +476,9 @@ class TikzParser extends EmbeddedActionsParser {
     this.CONSUME(Semicolon);
 
     this.ACTION(() => {
-      if (this.currentPath !== undefined) {
-        this.graph = this.graph?.addPathWithData(this.currentPath);
-        this.currentPath = undefined;
+      if (this.currentWire !== undefined) {
+        this.graph = this.graph?.addWireWithData(this.currentWire);
+        this.currentWire = undefined;
       }
     });
   });

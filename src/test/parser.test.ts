@@ -59,7 +59,7 @@ describe("Graph parser", () => {
     const g = parsed.result!;
     assert.strictEqual(g.numNodes, 4);
     assert.strictEqual(g.numEdges, 3);
-    assert.strictEqual(g.numPaths, 2);
+    assert.strictEqual(g.numWires, 2);
     assert.strictEqual(g.node(0)?.property("style"), "A");
     assert.strictEqual(g.node(0)?.property("complex style"), "{foo} {bar\\\\} {baz=$\\{$}");
     assert.strictEqual(g.node(1)?.property("style"), "B");
@@ -71,8 +71,8 @@ describe("Graph parser", () => {
     assert.strictEqual(g.edge(1)?.target, 2);
     assert.strictEqual(g.edge(2)?.source, 2);
     assert.strictEqual(g.edge(2)?.target, 3);
-    assert.strictEqual(g.path(0)?.edges.length, 1);
-    assert.strictEqual(g.path(1)?.edges.length, 2);
+    assert.strictEqual(g.wire(0)?.edges.length, 1);
+    assert.strictEqual(g.wire(1)?.edges.length, 2);
     assert.strictEqual(strip(g.tikz()), strip(input));
   });
 

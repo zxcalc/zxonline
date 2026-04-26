@@ -46,8 +46,8 @@ const commands: Command[] = [
   { name: "zxonline.nudgeRight", shortcuts: ["Ctrl+Shift+ArrowRight"], description: "Nudge right" },
   { name: "zxonline.nudgeUp", shortcuts: ["Ctrl+Shift+ArrowUp"], description: "Nudge up" },
   { name: "zxonline.nudgeDown", shortcuts: ["Ctrl+Shift+ArrowDown"], description: "Nudge down" },
-  { name: "zxonline.joinPaths", shortcuts: ["Ctrl+Alt+P"], description: "Join paths" },
-  { name: "zxonline.splitPaths", shortcuts: ["Ctrl+Alt+Shift+P"], description: "Split paths" },
+  { name: "zxonline.joinWires", shortcuts: ["Ctrl+Alt+P"], description: "Join wires" },
+  { name: "zxonline.splitWires", shortcuts: ["Ctrl+Alt+Shift+P"], description: "Split wires" },
   { name: "zxonline.mergeNodes", shortcuts: ["Ctrl+M"], description: "Merge nodes" },
 ];
 

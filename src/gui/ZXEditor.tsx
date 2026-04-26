@@ -29,13 +29,13 @@ const ZXEditor = () => {
   const config = useContext(ConfigContext);
   const styles = config.styles();
 
-  // path selection is calculated from selected edges or nodes
-  const selectedPaths = new Set(
+  // wire selection is calculated from selected edges or nodes
+  const selectedWires = new Set(
     selectedEdges.size > 0
-      ? Array.from(selectedEdges).map(e => graph.edge(e)!.path)
+      ? Array.from(selectedEdges).map(e => graph.edge(e)!.wire)
       : graph.edges
         .filter(d => selectedNodes.has(d.source) && selectedNodes.has(d.target))
-        .map(d => d.path)
+        .map(d => d.wire)
   );
 
 
@@ -102,7 +102,7 @@ const ZXEditor = () => {
     setCurrentEdgeStyle(style);
     if (apply) {
       const g = graph.mapEdgeData(d => {
-        if (selectedPaths.has(d.path)) {
+        if (selectedWires.has(d.wire)) {
           if (style === "none") {
             return d.unset("style");
           } else {

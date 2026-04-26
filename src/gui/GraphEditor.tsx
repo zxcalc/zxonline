@@ -7,10 +7,10 @@ import SceneCoords from "../lib/SceneCoords";
 import Node from "./Node";
 import Edge from "./Edge";
 import Styles from "../lib/Styles";
-import { Coord, EdgeData, NodeData, PathData } from "../lib/Data";
+import { Coord, EdgeData, NodeData, WireData } from "../lib/Data";
 import { shortenLine } from "../lib/curve";
 import { parseTikzPicture } from "../lib/TikzParser";
-import Path from "./Path";
+import Wire from "./Wire";
 import ConfigContext from "./ConfigContext";
 
 export type GraphTool = "select" | "vertex" | "edge";
@@ -42,7 +42,7 @@ interface UIState {
   edgeEndNode?: number;
   addEdgeLineStart?: Coord;
   addEdgeLineEnd?: Coord;
-  highlightPath?: number;
+  highlightWire?: number;
 }
 
 const uiStateReducer = (state: UIState, action: UIState | "reset"): UIState => {
@@ -76,13 +76,13 @@ const GraphEditor = ({
   const clickedEdge = useRef<number | undefined>(undefined);
   const clickedControlPoint = useRef<[number, 1 | 2] | undefined>(undefined);
 
-  // path selection is calculated from selected edges or nodes
-  const selectedPaths = new Set(
+  // wire selection is calculated from selected edges or nodes
+  const selectedWires = new Set(
     selectedEdges.size > 0
-      ? Array.from(selectedEdges).map(e => graph.edge(e)!.path)
+      ? Array.from(selectedEdges).map(e => graph.edge(e)!.wire)
       : graph.edges
         .filter(d => selectedNodes.has(d.source) && selectedNodes.has(d.target))
-        .map(d => d.path)
+        .map(d => d.wire)
   );
 
   useEffect(() => {
@@ -216,17 +216,17 @@ const GraphEditor = ({
           }
         } else if (clickedEdge.current !== undefined) {
           if (event.getModifierState(CTRL)) {
-            // select the whole path the edge is on
-            const path = graph.edge(clickedEdge.current)!.path;
-            const pathNodes = new Set(graph.pathNodes(path));
-            const pathEdges = new Set(graph.pathEdges(path));
+            // select the whole wire the edge is on
+            const wire = graph.edge(clickedEdge.current)!.wire;
+            const wireNodes = new Set(graph.wireNodes(wire));
+            const wireEdges = new Set(graph.wireEdges(wire));
 
             if (!selectedEdges.has(clickedEdge.current)) {
-              updateSelection(selectedNodes.union(pathNodes), selectedEdges.union(pathEdges));
+              updateSelection(selectedNodes.union(wireNodes), selectedEdges.union(wireEdges));
             } else {
               updateSelection(
-                selectedNodes.difference(pathNodes),
-                selectedEdges.difference(pathEdges)
+                selectedNodes.difference(wireNodes),
+                selectedEdges.difference(wireEdges)
               );
             }
           } else if (event.getModifierState("Shift")) {
@@ -496,12 +496,12 @@ const GraphEditor = ({
         break;
       case "edge":
         if (uiState.edgeStartNode !== undefined && uiState.edgeEndNode !== undefined) {
-          const pathId = graph.freshPathId;
+          const wireId = graph.freshWireId;
           let edge = new EdgeData()
             .setId(graph.freshEdgeId)
             .setSource(uiState.edgeStartNode)
             .setTarget(uiState.edgeEndNode)
-            .setPath(pathId);
+            .setWire(wireId);
           if (currentEdgeStyle !== "none") {
             edge = edge.setProperty("style", currentEdgeStyle);
           }
@@ -511,8 +511,8 @@ const GraphEditor = ({
           if (graph.node(edge.target)?.property("style") === "none") {
             edge = edge.setTargetAnchor("center");
           }
-          const path = new PathData().setId(pathId).setEdges([edge.id]);
-          updateGraph(graph.addEdgeWithData(edge).addPathWithData(path), true);
+          const wire = new WireData().setId(wireId).setEdges([edge.id]);
+          updateGraph(graph.addEdgeWithData(edge).addWireWithData(wire), true);
         }
         break;
     }
@@ -627,19 +627,19 @@ const GraphEditor = ({
         moveSelectedNodes(0, -0.025);
         break;
       }
-      case "zxonline.gui.joinPaths": {
-        if (selectedPaths.size > 1) {
-          const g = graph.joinPaths(selectedPaths);
+      case "zxonline.gui.joinWires": {
+        if (selectedWires.size > 1) {
+          const g = graph.joinWires(selectedWires);
           if (!g.equals(graph)) {
             updateGraph(g, true);
           }
         }
         break;
       }
-      case "zxonline.gui.splitPaths": {
+      case "zxonline.gui.splitWires": {
         let g = graph;
-        for (const p of selectedPaths) {
-          g = g.splitPath(p);
+        for (const w of selectedWires) {
+          g = g.splitWire(w);
         }
 
         if (!g.equals(graph)) {
@@ -669,22 +669,22 @@ const GraphEditor = ({
         break;
       }
       case "zxonline.gui.bringToFront": {
-        const g = graph.reorderElements(selectedNodes, selectedPaths, "front");
+        const g = graph.reorderElements(selectedNodes, selectedWires, "front");
         updateGraph(g, true);
         break;
       }
       case "zxonline.gui.sendToBack": {
-        const g = graph.reorderElements(selectedNodes, selectedPaths, "back");
+        const g = graph.reorderElements(selectedNodes, selectedWires, "back");
         updateGraph(g, true);
         break;
       }
       case "zxonline.gui.bringForward": {
-        const g = graph.reorderElements(selectedNodes, selectedPaths, "forward");
+        const g = graph.reorderElements(selectedNodes, selectedWires, "forward");
         updateGraph(g, true);
         break;
       }
       case "zxonline.gui.sendBackward": {
-        const g = graph.reorderElements(selectedNodes, selectedPaths, "backward");
+        const g = graph.reorderElements(selectedNodes, selectedWires, "backward");
         updateGraph(g, true);
         break;
       }
@@ -867,14 +867,14 @@ const GraphEditor = ({
       >
         <g id="grid"></g>
         <g id="edgeLayer">
-          {graph.paths.map(pathData => (
-            <g key={pathData.id}>
-              <Path
-                data={pathData}
+          {graph.wires.map(wireData => (
+            <g key={wireData.id}>
+              <Wire
+                data={wireData}
                 graph={graph}
                 sceneCoords={sceneCoords}
               />
-              {pathData.edges.map(e => {
+              {wireData.edges.map(e => {
                 const data = graph.edge(e)!;
                 return (
                   <Edge
@@ -884,13 +884,13 @@ const GraphEditor = ({
                     targetData={graph.node(data.target)!}
                     selected={selectedEdges.has(data.id)}
                     highlighted={
-                      uiState.highlightPath === data.path || selectedPaths.has(data.path)
+                      uiState.highlightWire === data.wire || selectedWires.has(data.wire)
                     }
                     onPointerDown={() => (clickedEdge.current = data.id)}
-                    onMouseOver={() => updateUIState({ highlightPath: data.path })}
+                    onMouseOver={() => updateUIState({ highlightWire: data.wire })}
                     onMouseOut={() => {
-                      if (uiState.highlightPath === data.path) {
-                        updateUIState({ highlightPath: undefined });
+                      if (uiState.highlightWire === data.wire) {
+                        updateUIState({ highlightWire: undefined });
                       }
                     }}
                     onControlPointPointerDown={i => (clickedControlPoint.current = [data.id, i])}

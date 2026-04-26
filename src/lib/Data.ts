@@ -231,7 +231,7 @@ class NodeData extends Data<NodeData> {
 class EdgeData extends Data<EdgeData> {
   private _source: number;
   private _target: number;
-  private _path: number;
+  private _wire: number;
   private _sourceAnchor?: string;
   private _targetAnchor?: string;
   private _edgeNode?: NodeData;
@@ -240,7 +240,7 @@ class EdgeData extends Data<EdgeData> {
     super(data);
     this._source = data?._source ?? -1;
     this._target = data?._target ?? -1;
-    this._path = data?._path ?? -1;
+    this._wire = data?._wire ?? -1;
     this._sourceAnchor = data?._sourceAnchor;
     this._targetAnchor = data?._targetAnchor;
     this._edgeNode = data?._edgeNode;
@@ -255,7 +255,7 @@ class EdgeData extends Data<EdgeData> {
       mapEquals(this._map, other._map) &&
       this._source === other._source &&
       this._target === other._target &&
-      this._path === other._path &&
+      this._wire === other._wire &&
       this._sourceAnchor === other._sourceAnchor &&
       this._targetAnchor === other._targetAnchor &&
       (this._edgeNode === other._edgeNode ||
@@ -277,8 +277,8 @@ class EdgeData extends Data<EdgeData> {
     return this._source === this._target;
   }
 
-  public get path(): number {
-    return this._path;
+  public get wire(): number {
+    return this._wire;
   }
 
   public get sourceAnchor(): string | undefined {
@@ -305,9 +305,9 @@ class EdgeData extends Data<EdgeData> {
     return d;
   }
 
-  public setPath(path: number): EdgeData {
+  public setWire(wire: number): EdgeData {
     const d = new EdgeData(this);
-    d._path = path;
+    d._wire = wire;
     return d;
   }
 
@@ -366,7 +366,7 @@ class EdgeData extends Data<EdgeData> {
     return d;
   }
 
-  public pathProperties(): EdgeData {
+  public wireProperties(): EdgeData {
     return new EdgeData(this).unset("style");
   }
 
@@ -392,24 +392,24 @@ class EdgeData extends Data<EdgeData> {
     const d = this.basicBendMode
       ? this.setBend(-this.bend)
       : this.setProperty("in", this.propertyFloat("out") ?? 0).setProperty(
-          "out",
-          this.propertyFloat("in") ?? 0
-        );
+        "out",
+        this.propertyFloat("in") ?? 0
+      );
     [d._source, d._target] = [d._target, d._source];
     return d;
   }
 }
 
-class PathData {
+class WireData {
   private _id: number;
   private _edges: number[];
 
-  constructor(data?: PathData) {
+  constructor(data?: WireData) {
     this._id = data?._id ?? -1;
     this._edges = data?._edges ?? [];
   }
 
-  public equals(other: PathData): boolean {
+  public equals(other: WireData): boolean {
     return this._id === other._id && arrayEquals(this._edges, other._edges);
   }
 
@@ -421,26 +421,26 @@ class PathData {
     return this._edges;
   }
 
-  public setId(id: number): PathData {
-    const p = new PathData(this);
+  public setId(id: number): WireData {
+    const p = new WireData(this);
     p._id = id;
     return p;
   }
 
-  public setEdges(edges: number[]): PathData {
-    const p = new PathData(this);
+  public setEdges(edges: number[]): WireData {
+    const p = new WireData(this);
     p._edges = edges;
     return p;
   }
 
-  public addEdge(edge: number): PathData {
-    const p = new PathData(this);
+  public addEdge(edge: number): WireData {
+    const p = new WireData(this);
     p._edges = [...p._edges, edge];
     return p;
   }
 
-  public removeEdge(index: number): PathData {
-    const p = new PathData(this);
+  public removeEdge(index: number): WireData {
+    const p = new WireData(this);
     p._edges = p._edges.filter((_, i) => i !== index);
     return p;
   }
@@ -563,4 +563,4 @@ class StyleData extends Data<StyleData> {
   }
 }
 
-export { mapEquals, arrayEquals, GraphData, NodeData, EdgeData, PathData, Coord, StyleData };
+export { mapEquals, arrayEquals, GraphData, NodeData, EdgeData, WireData, Coord, StyleData };

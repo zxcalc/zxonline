@@ -1,18 +1,18 @@
 import { useContext } from "preact/hooks";
 import { colorToHex } from "../lib/color";
 import { computeControlPoints } from "../lib/curve";
-import { PathData, StyleData } from "../lib/Data";
+import { WireData, StyleData } from "../lib/Data";
 import Graph from "../lib/Graph";
 import SceneCoords from "../lib/SceneCoords";
 import ConfigContext from "./ConfigContext";
 
-interface PathProps {
-  data: PathData;
+interface WireProps {
+  data: WireData;
   graph: Graph;
   sceneCoords: SceneCoords;
 }
 
-const Path = ({ data, graph, sceneCoords }: PathProps) => {
+const Wire = ({ data, graph, sceneCoords }: WireProps) => {
   if (data.edges.length === 0) return <></>;
   const config = useContext(ConfigContext);
   const styles = config.styles();
@@ -36,4 +36,4 @@ const Path = ({ data, graph, sceneCoords }: PathProps) => {
   return <path opacity={0.7} fill={fillColor} d={d} style={{ pointerEvents: "none" }} />;
 };
 
-export default Path;
+export default Wire;
