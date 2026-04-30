@@ -32,7 +32,7 @@ The main datastructures are immutable: update methods make a shallow copy and re
 const g = new Graph();
 g.addNodeWithData(new NodeData());
 
-// 'g1' had a single node
+// 'g1' has a single node
 let g1 = new Graph();
 g1 = g1.addNodeWithData(new NodeData());
 
