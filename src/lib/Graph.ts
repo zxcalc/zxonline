@@ -1,23 +1,19 @@
-import { NodeData, EdgeData, WireData, GraphData, mapEquals, Coord } from "./Data";
+import { NodeData, EdgeData, GraphData, mapEquals, Coord } from "./Data";
 import { moveForward, moveBackward, moveToFront, moveToBack } from "./util";
 
 class Graph {
   private _graphData: GraphData = new GraphData();
   private _nodeData: Map<number, NodeData>;
-  private _wireData: Map<number, WireData>;
   private _edgeData: Map<number, EdgeData>;
   private maxNodeId: number;
   private maxEdgeId: number;
-  private maxWireId: number;
 
   constructor(graph?: Graph) {
     this._graphData = graph?._graphData ?? new GraphData();
     this._nodeData = graph !== undefined ? graph._nodeData : new Map();
     this._edgeData = graph !== undefined ? graph._edgeData : new Map();
-    this._wireData = graph !== undefined ? graph._wireData : new Map();
     this.maxNodeId = graph?.maxNodeId ?? -1;
     this.maxEdgeId = graph?.maxEdgeId ?? -1;
-    this.maxWireId = graph?.maxWireId ?? -1;
   }
 
   public get graphData(): GraphData {
@@ -32,10 +28,6 @@ class Graph {
     return Array.from(this._edgeData.values());
   }
 
-  public get wires(): WireData[] {
-    return Array.from(this._wireData.values());
-  }
-
   public node(id: number): NodeData | undefined {
     return this._nodeData.get(id);
   }
@@ -44,17 +36,10 @@ class Graph {
     return this._edgeData.get(id);
   }
 
-  public wire(id: number): WireData | undefined {
-    return this._wireData.get(id);
-  }
-
   public get nodeIds(): number[] {
     return Array.from(this._nodeData.keys());
   }
 
-  public get wireIds(): number[] {
-    return Array.from(this._wireData.keys());
-  }
 
   public get edgeIds(): number[] {
     return Array.from(this._edgeData.keys());
@@ -68,10 +53,6 @@ class Graph {
     return this._edgeData.size;
   }
 
-  public get numWires(): number {
-    return this._wireData.size;
-  }
-
   public hasNode(id: number): boolean {
     return this._nodeData.has(id);
   }
@@ -80,8 +61,9 @@ class Graph {
     return this._edgeData.has(id);
   }
 
-  public hasWire(id: number): boolean {
-    return this._wireData.has(id);
+  public hasPoints(id: number): boolean {
+    const edge = this._edgeData.get(id);
+    return edge !== undefined && edge.points.length > 0;
   }
 
   public setGraphData(d: GraphData): Graph {
@@ -106,16 +88,6 @@ class Graph {
     g._edgeData.set(d.id, d);
     if (d.id > g.maxEdgeId) {
       g.maxEdgeId = d.id;
-    }
-    return g;
-  }
-
-  public addWireWithData(d: WireData): Graph {
-    const g = new Graph(this);
-    g._wireData = new Map(this._wireData);
-    g._wireData.set(d.id, d);
-    if (d.id > g.maxWireId) {
-      g.maxWireId = d.id;
     }
     return g;
   }
@@ -178,25 +150,6 @@ class Graph {
     return g;
   }
 
-  public updateWireData(id: number, fn: (data: WireData) => WireData): Graph {
-    const wire = this._wireData.get(id);
-    if (wire) {
-      const g = new Graph(this);
-      g._wireData = new Map(this._wireData);
-      g._wireData.set(id, fn(wire));
-      return g;
-    } else {
-      return this;
-    }
-  }
-
-  public setWireData(id: number, data: WireData): Graph {
-    const g = new Graph(this);
-    g._wireData = new Map(this._wireData);
-    g._wireData.set(id, data);
-    return g;
-  }
-
   public edgeSourceData(id: number): NodeData | undefined {
     const edge = this._edgeData.get(id);
     if (edge) {
@@ -215,41 +168,6 @@ class Graph {
     }
   }
 
-  public wireSource(id: number): number {
-    const edge = this._edgeData.get(this._wireData.get(id)!.edges[0])!;
-    return edge.source;
-  }
-
-  public wireTarget(id: number): number {
-    const edge = this._edgeData.get(
-      this._wireData.get(id)!.edges[this._wireData.get(id)!.edges.length - 1]
-    )!;
-    return edge.target;
-  }
-
-  public wireNodes(id: number): number[] {
-    const wire = this._wireData.get(id);
-    if (!wire) {
-      return [];
-    }
-    const nodes: number[] = [];
-    for (const e of wire!.edges) {
-      if (nodes.length === 0) {
-        nodes.push(this.edge(e)!.source);
-      }
-      nodes.push(this.edge(e)!.target);
-    }
-    return nodes;
-  }
-
-  public wireEdges(id: number): number[] {
-    const wire = this._wireData.get(id);
-    if (wire) {
-      return wire.edges;
-    }
-    return [];
-  }
-
   public removeNodes(nodes: Iterable<number>): Graph {
     const g = new Graph(this);
     g._nodeData = new Map(this._nodeData);
@@ -265,7 +183,7 @@ class Graph {
       }
     }
 
-    return g.fixWires();
+    return g;
   }
 
   public removeEdges(edges: Iterable<number>): Graph {
@@ -275,184 +193,173 @@ class Graph {
     for (const e of remove) {
       g._edgeData.delete(e);
     }
-    return g.fixWires();
-  }
-
-  public removeWire(wireId: number): Graph {
-    const g = new Graph(this);
-    g._wireData = new Map(this._wireData);
-    g._wireData.delete(wireId);
     return g;
   }
+// Split edge by converting points to nodes.
+public splitEdge(edgeId: number): Graph {
+  let g = new Graph(this);
+  const edge = g._edgeData.get(edgeId);
+  if (!edge || edge.points.length === 0) return this;
 
-  // after modifying or removing edges, cut wires into multiple pieces where edges are missing
-  // or non-contiguous, and remove any empty wires
-  private fixWires(): Graph {
-    let g = new Graph(this);
-    const wires = Array.from(g._wireData.values());
+  const points = edge.points;
+  let prevNodeId = edge.source;
 
-    for (const wd of wires) {
-      // split wire into parts where edges are present and contiguous
-      const wireParts: number[][] = [[]];
-      for (const e of wd.edges) {
-        let es = wireParts[wireParts.length - 1];
-        if (g._edgeData.has(e)) {
-          if (es.length > 0) {
-            const lastE = g._edgeData.get(es[es.length - 1])!;
-            if (lastE.target !== g._edgeData.get(e)!.source) {
-              wireParts.push([]);
-              es = wireParts[wireParts.length - 1];
-            }
-          }
-          es.push(e);
-        } else if (es.length > 0) {
-          wireParts.push([]);
-        }
-      }
+  // remove original edge
+  g = g.removeEdges([edgeId]);
 
-      if (wireParts[wireParts.length - 1].length === 0) {
-        wireParts.pop();
-      }
+  // create a new node and edge for each intermediate point
+  for (let i = 0; i < points.length; i++) {
+    const newNodeId = g.freshNodeId;
+    const newNode = new NodeData()
+      .setId(newNodeId)
+      .setCoord(points[i]);
+    g = g.addNodeWithData(newNode);
 
-      if (wireParts.length === 0) {
-        g = g.removeWire(wd.id);
-        continue;
-      }
+    const newEdgeId = g.freshEdgeId;
+    const newEdge = new EdgeData()
+      .setId(newEdgeId)
+      .setSource(prevNodeId)
+      .setTarget(newNodeId);
+    g = g.addEdgeWithData(newEdge);
 
-      let wireId = wd.id;
-      for (const part of wireParts) {
-        // reuse the existing wire ID for the first part
-        g = g.addWireWithData(new WireData().setId(wireId).setEdges(part));
-        part.forEach(e => {
-          g = g.updateEdgeData(e, ed => ed.setWire(wireId));
-        });
-        wireId = g.freshWireId;
-      }
-    }
-    return g;
+    prevNodeId = newNodeId;
   }
 
-  // reverse the direction of a wire
-  public reverseWire(wireId: number): Graph {
-    let graph = new Graph(this);
-    const wd = this._wireData.get(wireId)!;
-    graph = graph.updateWireData(wireId, w => w.setEdges(wd.edges.reverse()));
-    for (const e of wd.edges) {
-      graph = graph.updateEdgeData(e, ed => ed.reverse());
-    }
-    return graph;
+  // final edge from last new node to original target
+  const finalEdge = new EdgeData()
+    .setId(g.freshEdgeId)
+    .setSource(prevNodeId)
+    .setTarget(edge.target);
+  g = g.addEdgeWithData(finalEdge);
+
+  return g;
+}
+
+  // join two edges that connect
+  // Returns undefined if the edges cannot be joined and always preserves the first edge ID
+  private joinTwoEdges(edge1: number, edge2: number): Graph | undefined {
+  const ed1 = this._edgeData.get(edge1);
+  const ed2 = this._edgeData.get(edge2);
+
+  if (ed1 === undefined || ed2 === undefined) return undefined;
+
+  let newSource: number;
+  let newTarget: number;
+  let newPoints: Coord[];
+  let sharedNode: number;
+
+  const n1s = ed1.source, n1t = ed1.target;
+  const n2s = ed2.source, n2t = ed2.target;
+
+  if (n1t === n2s) {
+    sharedNode = n1t;
+    newSource = n1s;
+    newTarget = n2t;
+    const sharedCoord = this._nodeData.get(sharedNode)!.coord;
+    newPoints = [...ed1.points, sharedCoord, ...ed2.points];
+  } else if (n2t === n1s) {
+    sharedNode = n1s;
+    newSource = n2s;
+    newTarget = n1t;
+    const sharedCoord = this._nodeData.get(sharedNode)!.coord;
+    newPoints = [...ed2.points, sharedCoord, ...ed1.points];
+  } else if (n1t === n2t) {
+    sharedNode = n1t;
+    newSource = n1s;
+    newTarget = n2s;
+    const sharedCoord = this._nodeData.get(sharedNode)!.coord;
+    newPoints = [...ed1.points, sharedCoord, ...[...ed2.points].reverse()];
+  } else if (n1s === n2s) {
+    sharedNode = n1s;
+    newSource = n1t;
+    newTarget = n2t;
+    const sharedCoord = this._nodeData.get(sharedNode)!.coord;
+    newPoints = [...[...ed1.points].reverse(), sharedCoord, ...ed2.points];
+  } else {
+    return undefined;
   }
 
-  // splits a wire with N edges into N wires with 1 edge each
-  public splitWire(wireId: number): Graph {
-    let graph = new Graph(this);
-    const wd = this._wireData.get(wireId)!;
+  const mergedEdge = new EdgeData()
+    .setId(ed1.id)
+    .setSource(newSource)
+    .setTarget(newTarget)
+    .setPoints(newPoints);
 
-    if (wd.edges.length > 1) {
-      graph = graph.updateWireData(wireId, w => w.setEdges(wd.edges.slice(0, 1)));
-      for (const e of wd.edges.slice(1)) {
-        const newWireId = graph.freshWireId;
-        graph = graph.addWireWithData(new WireData().setId(newWireId).setEdges([e]));
-        graph = graph.updateEdgeData(e, ed => ed.setWire(newWireId));
-      }
-    }
+  let graph = new Graph(this);
+  graph = graph.removeEdges([edge2]);
+  graph = graph.removeNodes([sharedNode]);
+  graph = graph.setEdgeData(ed1.id, mergedEdge);
 
-    return graph;
-  }
+  return graph;
+}
 
-  // join two wires that connect, reversing one of the wires if necessary
-  // Returns undefined if the wires cannot be joined and always preserves the first wire ID
-  private joinTwoWires(wire1: number, wire2: number): Graph | undefined {
-    let graph = new Graph(this);
-    const wd1 = this._wireData.get(wire1);
-    const wd2 = this._wireData.get(wire2);
+// Join groups of edges by selected subgroupings - can convert back only to continuous grouping.
+public joinEdges(edges: Iterable<number>): Graph {
+  let graph = new Graph(this);
+  let remaining = Array.from(edges);
 
-    if (wd1 === undefined || wd2 === undefined) {
-      return undefined;
-    }
+  // LOCAL SIMPLIFICATION MODE: joins all contiguous subgroups independently
+  // To revert to BAIL OUT MODE: replace this entire while block with the following:
+  //
+  // let otherEdges = remaining.slice(1);
+  // const edge = remaining[0];
+  // if (remaining.length === 0) return this;
+  // while (otherEdges.length > 0) {
+  //   const e = otherEdges.find(e => {
+  //     const g = graph.joinTwoEdges(edge, e);
+  //     if (g !== undefined) { graph = g; return true; }
+  //     return false;
+  //   });
+  //   if (e !== undefined) { otherEdges = otherEdges.filter(q => q !== e); }
+  //   else { return this; }
+  // }
+  // return graph;
 
-    // there are four cases. Depending on how the wires connect, we may need to reverse
-    // wire2 then either prepend or append its edges to wire1
+  while (remaining.length > 0) {
+    const edge = remaining[0];
+    remaining = remaining.slice(1);
 
-    if (this.wireTarget(wire1) === this.wireSource(wire2)) {
-      // I join two wires in the morning
-      graph = graph.updateWireData(wire1, w => w.setEdges(wd1.edges.concat(wd2.edges)));
-    } else if (this.wireSource(wire1) === this.wireTarget(wire2)) {
-      // I join two wires at night
-      graph = graph.updateWireData(wire1, w => w.setEdges(wd2.edges.concat(wd1.edges)));
-    } else if (this.wireTarget(wire1) === this.wireTarget(wire2)) {
-      // I join two wires in the afternoon
-      graph = graph.reverseWire(wire2);
-      graph = graph.updateWireData(wire1, w => w.setEdges(wd1.edges.concat(wd2.edges)));
-    } else if (this.wireSource(wire1) === this.wireSource(wire2)) {
-      // It makes me feel alright
-      graph = graph.reverseWire(wire2);
-      graph = graph.updateWireData(wire1, w => w.setEdges(wd2.edges.concat(wd1.edges)));
-    } else {
-      return undefined;
-    }
-
-    graph = graph.removeWire(wire2);
-    for (const e of wd2.edges) {
-      graph = graph.updateEdgeData(e, ed => ed.setWire(wire1));
-    }
-
-    return graph;
-  }
-
-  // attempt to join a collection of wires into a single wire, reversing wires if necessary
-  public joinWires(wires: Iterable<number>): Graph {
-    let graph = new Graph(this);
-
-    let otherWires = Array.from(wires);
-    if (otherWires.length === 0) {
-      return this;
-    }
-    const wire = otherWires[0];
-    otherWires = otherWires.slice(1);
-
-    while (otherWires.length > 0) {
-      const w = otherWires.find(w => {
-        const g = graph.joinTwoWires(wire, w);
+    let found = true;
+    while (found) {
+      found = false;
+      remaining.find(e => {
+        const g = graph.joinTwoEdges(edge, e);
         if (g !== undefined) {
           graph = g;
+          remaining = remaining.filter(q => q !== e);
+          found = true;
           return true;
-        } else {
-          return false;
         }
+        return false;
       });
-
-      if (w !== undefined) {
-        otherWires = otherWires.filter(q => q !== w);
-      } else {
-        return this;
-      }
     }
-    return graph;
   }
+
+  return graph;
+}
 
   public reorderElements(
     nodes: Set<number>,
-    wires: Set<number>,
+    edges: Set<number>,
     direction: "forward" | "backward" | "front" | "back"
   ): Graph {
     const g = new Graph(this);
     switch (direction) {
       case "forward":
         g._nodeData = moveForward(g._nodeData, nodes);
-        g._wireData = moveForward(g._wireData, wires);
+        g._edgeData = moveForward(g._edgeData, edges);
         break;
       case "backward":
         g._nodeData = moveBackward(g._nodeData, nodes);
-        g._wireData = moveBackward(g._wireData, wires);
+        g._edgeData = moveBackward(g._edgeData, edges);
         break;
       case "front":
         g._nodeData = moveToFront(g._nodeData, nodes);
-        g._wireData = moveToFront(g._wireData, wires);
+        g._edgeData = moveToFront(g._edgeData, edges);
         break;
       case "back":
         g._nodeData = moveToBack(g._nodeData, nodes);
-        g._wireData = moveToBack(g._wireData, wires);
+        g._edgeData = moveToBack(g._edgeData, edges);
         break;
     }
     return g;
@@ -469,7 +376,6 @@ class Graph {
     let g = new Graph(this);
     const ntab: { [key: number]: number } = {};
     const etab: { [key: number]: number } = {};
-    const wtab: { [key: number]: number } = {};
 
     for (const [id, data] of other._nodeData) {
       ntab[id] = g._nodeData.has(id) ? g.freshNodeId : id;
@@ -481,15 +387,6 @@ class Graph {
       const d = data.setId(etab[id]).setSource(ntab[data.source]).setTarget(ntab[data.target]);
       g = g.addEdgeWithData(d);
     }
-
-    for (const [id, data] of other._wireData) {
-      wtab[id] = g.hasWire(id) ? g.freshWireId : id;
-      const d = data.setId(wtab[id]).setEdges(data.edges.map(e => etab[e]));
-      g = g.addWireWithData(d);
-    }
-
-    g = g.mapEdgeData(d => (!this.hasEdge(d.id) ? d.setWire(wtab[d.wire]) : d));
-
     return g;
   }
 
@@ -585,10 +482,6 @@ class Graph {
     return this.maxEdgeId + 1;
   }
 
-  public get freshWireId(): number {
-    return this.maxWireId + 1;
-  }
-
   /** This function inherits any identical data from the provided graph
    *
    * This helps reactive components recognise the same data via Object.is() after the graph
@@ -606,90 +499,68 @@ class Graph {
         this._edgeData.set(key, d);
       }
     }
-
-    for (const [key, d] of other._wireData.entries()) {
-      if (this._wireData.get(key)?.equals(d)) {
-        this._wireData.set(key, d);
-      }
-    }
   }
 
   public equals(other: Graph): boolean {
     return (
       mapEquals(this._nodeData, other._nodeData) &&
       mapEquals(this._edgeData, other._edgeData) &&
-      mapEquals(this._wireData, other._wireData) &&
       this.maxNodeId === other.maxNodeId &&
-      this.maxEdgeId === other.maxEdgeId &&
-      this.maxWireId === other.maxWireId
+      this.maxEdgeId === other.maxEdgeId
     );
   }
 
+  // LaTeX visualisation
   public tikzWithPosition(
-    node?: number,
-    edge?: number
-  ): [string, { line: number; column: number } | undefined] {
-    let position: { line: number; column: number } | undefined = undefined;
-    const wire = edge ? this.edge(edge)?.wire : undefined;
+  node?: number,
+  edge?: number
+): [string, { line: number; column: number } | undefined] {
+  let position: { line: number; column: number } | undefined = undefined;
 
-    let result = "\\begin{tikzpicture}\n";
-    result += "\t\\begin{pgfonlayer}{nodelayer}\n";
-    for (const d of this.nodes.values()) {
-      if (d) {
-        const dt = d.tikz();
-        result += "\t\t\\node " + dt;
+  let result = "\\begin{tikzpicture}\n";
+  result += "\t\\begin{pgfonlayer}{nodelayer}\n";
+  for (const d of this.nodes) {
+    if (d) {
+      const dt = d.tikz();
+      result += "\t\t\\node " + dt;
 
-        if (node === d.id) {
-          // return the position of the end of the property list
-          const lines = result.split("\n");
-          position = { line: lines.length - 1, column: lines[lines.length - 1].length - 1 };
-        }
-
-        if (dt !== "") {
-          result += " ";
-        }
-
-        result += `(${d.id}) at (${d.coord.x}, ${d.coord.y}) {${d.label}};\n`;
+      if (node === d.id) {
+        const lines = result.split("\n");
+        position = { line: lines.length - 1, column: lines[lines.length - 1].length - 1 };
       }
+
+      if (dt !== "") result += " ";
+      result += `(${d.id}) at (${d.coord.x}, ${d.coord.y}) {${d.label}};\n`;
     }
-    result += "\t\\end{pgfonlayer}\n";
-    result += "\t\\begin{pgfonlayer}{edgelayer}\n";
-    for (const wd of this.wires) {
-      for (const [i, e] of wd.edges.entries()) {
-        const d = this.edge(e)!;
-        const edgeNode = d.edgeNode !== undefined ? ` node${d.edgeNode.tikz()}` : "";
-
-        if (i === 0) {
-          const dt = d.tikz();
-          result += `\t\t\\draw ${dt}`;
-
-          if (wire === wd.id) {
-            // return the position of the end of the edge property list
-            const lines = result.split("\n");
-            position = { line: lines.length - 1, column: lines[lines.length - 1].length - 1 };
-          }
-
-          if (dt !== "") {
-            result += " ";
-          }
-
-          result += `${d.sourceRef} to${edgeNode} ${d.targetRef}`;
-        } else {
-          const targetRef =
-            i === wd.edges.length - 1 && d.target === this.edge(wd.edges[0])!.source
-              ? "cycle"
-              : d.targetRef;
-
-          // wireProperties does not contain "style", which is inherited from the first edge in the wire
-          result += ` to${d.wireProperties().tikz()}${edgeNode} ${targetRef}`;
-        }
-      }
-      result += ";\n";
-    }
-    result += "\t\\end{pgfonlayer}\n";
-    result += "\\end{tikzpicture}\n";
-    return [result, position];
   }
+  result += "\t\\end{pgfonlayer}\n";
+  result += "\t\\begin{pgfonlayer}{edgelayer}\n";
+
+  for (const d of this.edges) {
+    const dt = d.tikz();
+    const edgeNode = d.edgeNode !== undefined ? ` node${d.edgeNode.tikz()}` : "";
+
+    result += `\t\t\\draw ${dt}`;
+
+    if (edge === d.id) {
+      const lines = result.split("\n");
+      position = { line: lines.length - 1, column: lines[lines.length - 1].length - 1 };
+    }
+
+    if (dt !== "") result += " ";
+
+    // if edge has intermediate points, chain them with 'to'
+    result += `${d.sourceRef}`;
+    for (const p of d.points) {
+      result += ` to (${p.x}, ${p.y})`;
+    }
+    result += ` to${edgeNode} ${d.targetRef};\n`;
+  }
+
+  result += "\t\\end{pgfonlayer}\n";
+  result += "\\end{tikzpicture}\n";
+  return [result, position];
+}
 
   public tikz(): string {
     return this.tikzWithPosition()[0];
