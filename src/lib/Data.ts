@@ -231,7 +231,7 @@ class NodeData extends Data<NodeData> {
 class EdgeData extends Data<EdgeData> {
   private _source: number;
   private _target: number;
-  private _wire: number;
+  private _points: Coord[];
   private _sourceAnchor?: string;
   private _targetAnchor?: string;
   private _edgeNode?: NodeData;
@@ -240,7 +240,7 @@ class EdgeData extends Data<EdgeData> {
     super(data);
     this._source = data?._source ?? -1;
     this._target = data?._target ?? -1;
-    this._wire = data?._wire ?? -1;
+    this._points = data?._points ?? [];
     this._sourceAnchor = data?._sourceAnchor;
     this._targetAnchor = data?._targetAnchor;
     this._edgeNode = data?._edgeNode;
@@ -255,7 +255,7 @@ class EdgeData extends Data<EdgeData> {
       mapEquals(this._map, other._map) &&
       this._source === other._source &&
       this._target === other._target &&
-      this._wire === other._wire &&
+      this._points === other._points &&
       this._sourceAnchor === other._sourceAnchor &&
       this._targetAnchor === other._targetAnchor &&
       (this._edgeNode === other._edgeNode ||
@@ -277,8 +277,8 @@ class EdgeData extends Data<EdgeData> {
     return this._source === this._target;
   }
 
-  public get wire(): number {
-    return this._wire;
+  public get points(): Coord[] {
+    return this._points;
   }
 
   public get sourceAnchor(): string | undefined {
@@ -305,9 +305,9 @@ class EdgeData extends Data<EdgeData> {
     return d;
   }
 
-  public setWire(wire: number): EdgeData {
+  public setPoints(points: Coord[]): EdgeData {
     const d = new EdgeData(this);
-    d._wire = wire;
+    d._points = points;
     return d;
   }
 
@@ -326,6 +326,18 @@ class EdgeData extends Data<EdgeData> {
   public setEdgeNode(edgeNode: NodeData | undefined): EdgeData {
     const d = new EdgeData(this);
     d._edgeNode = edgeNode;
+    return d;
+  }
+
+  public addPoint(coord: Coord): EdgeData {
+    const d = new EdgeData(this);
+    d._points = [...d._points, coord];
+    return d;
+  }
+
+  public removePoint(index: number): EdgeData {
+    const d = new EdgeData(this);
+    d._points = d._points.filter((_, i) => i !== index);
     return d;
   }
 
@@ -366,9 +378,9 @@ class EdgeData extends Data<EdgeData> {
     return d;
   }
 
-  public wireProperties(): EdgeData {
-    return new EdgeData(this).unset("style");
-  }
+  // public wireProperties(): EdgeData {
+  //   return new EdgeData(this).unset("style");
+  // }
 
   public reflect(horizontal: boolean): EdgeData {
     if (this.basicBendMode) {
@@ -397,52 +409,6 @@ class EdgeData extends Data<EdgeData> {
       );
     [d._source, d._target] = [d._target, d._source];
     return d;
-  }
-}
-
-class WireData {
-  private _id: number;
-  private _edges: number[];
-
-  constructor(data?: WireData) {
-    this._id = data?._id ?? -1;
-    this._edges = data?._edges ?? [];
-  }
-
-  public equals(other: WireData): boolean {
-    return this._id === other._id && arrayEquals(this._edges, other._edges);
-  }
-
-  public get id(): number {
-    return this._id;
-  }
-
-  public get edges(): number[] {
-    return this._edges;
-  }
-
-  public setId(id: number): WireData {
-    const p = new WireData(this);
-    p._id = id;
-    return p;
-  }
-
-  public setEdges(edges: number[]): WireData {
-    const p = new WireData(this);
-    p._edges = edges;
-    return p;
-  }
-
-  public addEdge(edge: number): WireData {
-    const p = new WireData(this);
-    p._edges = [...p._edges, edge];
-    return p;
-  }
-
-  public removeEdge(index: number): WireData {
-    const p = new WireData(this);
-    p._edges = p._edges.filter((_, i) => i !== index);
-    return p;
   }
 }
 
@@ -563,4 +529,4 @@ class StyleData extends Data<StyleData> {
   }
 }
 
-export { mapEquals, arrayEquals, GraphData, NodeData, EdgeData, WireData, Coord, StyleData };
+export { mapEquals, arrayEquals, GraphData, NodeData, EdgeData, Coord, StyleData };
