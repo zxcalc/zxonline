@@ -1,6 +1,6 @@
 import { createToken, Lexer, EmbeddedActionsParser } from "chevrotain";
 import Graph from "./Graph";
-import { Coord, GraphData, EdgeData, NodeData, WireData, StyleData } from "./Data";
+import { Coord, GraphData, EdgeData, NodeData, StyleData } from "./Data";
 import Styles from "./Styles";
 
 function matchDelimString(text: string, startOffset: number): [string] | null {
@@ -144,8 +144,10 @@ class TikzParser extends EmbeddedActionsParser {
   private d?: any;
   // the parser allows arbitrary node names in tikz files, but only stores ids. This field maps names to generated ids
   private nodeIds?: Map<string, number>;
-  // the current wire being parsed, used for multi-part edges
-  private currentWire?: WireData;
+  // the current edge being parsed.
+  private currentEdge?: number;
+  // Count t
+  private edgeTargetCount: number = 0;
 
   constructor() {
     super(allTokens);
@@ -395,6 +397,7 @@ class TikzParser extends EmbeddedActionsParser {
 
     this.ACTION(() => {
       this.d = (this.d as EdgeData).setSource(nodeRef[0]).setSourceAnchor(nodeRef[1]);
+      this.currentEdge = nodeRef[0]; // Captures source
     });
   });
 
@@ -402,6 +405,11 @@ class TikzParser extends EmbeddedActionsParser {
     this.CONSUME(To);
     this.SUBRULE(this.optProperties);
     this.SUBRULE(this.optEdgeNode);
+
+    // Increment each time a target is parsed.
+    this.ACTION(() => {
+      this.edgeTargetCount ++;
+    });
 
     this.OR([
       {
@@ -430,15 +438,13 @@ class TikzParser extends EmbeddedActionsParser {
           const cycleToken = this.CONSUME(Cycle);
 
           this.ACTION(() => {
-            const d = this.d as EdgeData;
-            if (this.currentWire && this.currentWire.edges.length > 0) {
-              const firstEdge = this.currentWire.edges[0];
-              this.d = d.setTarget(this.graph?.edge(firstEdge)?.source ?? -1);
+            if (this.currentEdge !== undefined && this.edgeTargetCount >= 2) {
+              this.d = (this.d as EdgeData).setTarget(this.currentEdge);
             } else {
               throw new ParseError(
                 cycleToken.startLine ?? 1,
                 cycleToken.startColumn ?? 1,
-                "'cycle' can only be used in wires of length 2 or more"
+                "'cycle' can only be used in edges of length 2 or more"
               );
             }
           });
@@ -447,28 +453,20 @@ class TikzParser extends EmbeddedActionsParser {
     ]);
 
     this.ACTION(() => {
-      let d = this.d as EdgeData;
-      if (this.graph !== undefined && this.currentWire !== undefined) {
-        d = d.setWire(this.currentWire.id);
-        this.currentWire = this.currentWire.addEdge(d.id);
-        this.graph = this.graph.addEdgeWithData(d);
-        let d1 = new EdgeData().setId(this.graph.freshEdgeId).setSource(d.target);
-
-        // inherit style from previous edge if present
-        if (d.property("style") !== undefined) {
-          d1 = d1.setProperty("style", d.property("style"));
-        }
-
-        this.d = d1;
-      }
+      const d = this.d as EdgeData;
+      // add the completed edge directly to the graph
+      this.graph = this.graph?.addEdgeWithData(d);
+      // prepare next edge in chain, sourcing from current target
+      this.d = new EdgeData()
+        .setId(this.graph?.freshEdgeId ?? 0)
+        .setSource(d.target);
     });
   });
 
   private edge = this.RULE("edge", () => {
     this.CONSUME(DrawCmd);
-
     this.ACTION(() => {
-      this.currentWire = new WireData().setId(this.graph?.freshWireId ?? 0);
+      this.edgeTargetCount = 0; // reset count
     });
 
     this.SUBRULE(this.edgeSource);
@@ -476,10 +474,8 @@ class TikzParser extends EmbeddedActionsParser {
     this.CONSUME(Semicolon);
 
     this.ACTION(() => {
-      if (this.currentWire !== undefined) {
-        this.graph = this.graph?.addWireWithData(this.currentWire);
-        this.currentWire = undefined;
-      }
+      this.currentEdge = undefined;
+      this.edgeTargetCount = 0;
     });
   });
 
