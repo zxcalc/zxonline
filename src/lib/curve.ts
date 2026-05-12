@@ -202,3 +202,18 @@ export function computeControlPoints(
 
   return [[c1, c2, cp1, cp2], cpDist, bezier];
 }
+
+export function catmullRomToBezier(
+  p0: Coord, p1: Coord, p2: Coord, p3: Coord, tension: number = 1
+): [Coord, Coord] {
+  return [
+    new Coord(
+      p1.x + (p2.x - p0.x) / (6 * tension),
+      p1.y + (p2.y - p0.y) / (6 * tension)
+    ),
+    new Coord(
+      p2.x - (p3.x - p1.x) / (6 * tension),
+      p2.y - (p3.y - p1.y) / (6 * tension)
+    )
+  ];
+}

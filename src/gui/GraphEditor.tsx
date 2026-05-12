@@ -74,6 +74,7 @@ const GraphEditor = ({
   // refs used to pass data from edge components to the graph editor
   const clickedEdge = useRef<number | undefined>(undefined);
   const clickedControlPoint = useRef<[number, 1 | 2] | undefined>(undefined);
+  const clickedEdgePoint = useRef<[number, number] | undefined>(undefined);
 
   // edge selection is calculated from selected nodes ?? Unsure of necessity
 
@@ -214,7 +215,8 @@ const GraphEditor = ({
             }
           }
         } else if (clickedEdge.current !== undefined) {
-          if (event.getModifierState(CTRL)) {
+          if (clickedEdgePoint.current !== undefined) {
+          } else if (event.getModifierState(CTRL)) {
 
             if (!selectedEdges.has(clickedEdge.current)) {
               updateSelection(selectedNodes, new Set([...selectedEdges, clickedEdge.current]));
@@ -304,7 +306,7 @@ const GraphEditor = ({
           } else {
             dx2 = p.x - targetCoord.x;
             dy2 = p.y - targetCoord.y;
-          }
+          } 
 
           const baseDist = Math.sqrt(dx1 * dx1 + dy1 * dy1);
           const handleDist = Math.sqrt(dx2 * dx2 + dy2 * dy2);
@@ -353,6 +355,13 @@ const GraphEditor = ({
           }
 
           updateGraph(graph.setEdgeData(edge, d), false);
+        } else if (clickedEdgePoint.current !== undefined) {
+          const [edgeId, pointIndex] = clickedEdgePoint.current;
+          const edge = graph.edge(edgeId)!;
+          const newPoints = edge.points.map((pt, i) =>
+          i === pointIndex ? sceneCoords.coordFromScreen(p) : pt
+          );
+          updateGraph(graph.updateEdgeData(edgeId, d => d.setPoints(newPoints)), false);
         }
         break;
       case "vertex":
@@ -421,32 +430,12 @@ const GraphEditor = ({
               labelField.select();
             }, 10);
           } else if (
-            clickedEdge.current !== undefined ||
-            clickedControlPoint.current !== undefined
-          ) {
-            const edge = clickedEdge.current ?? clickedControlPoint.current![0];
-            let d = graph.edge(edge)!;
-            const sCoord = graph.node(d.source)!.coord;
-            const tCoord = graph.node(d.target)!.coord;
-            const baseAngle =
-              (Math.atan2(tCoord.y - sCoord.y, tCoord.x - sCoord.x) * 180) / Math.PI;
-
-            if (d.basicBendMode) {
-              const bend = d.bend;
-              const outAngle = Math.round((baseAngle - bend) / 15) * 15;
-              const inAngle = Math.round((baseAngle + 180 + bend) / 15) * 15;
-              d = d
-                .unset("bend left")
-                .unset("bend right")
-                .setProperty("out", outAngle)
-                .setProperty("in", inAngle);
-            } else {
-              const outAngle = d.propertyInt("out") ?? 0;
-              const bend = Math.round((baseAngle - outAngle) / 15) * 15;
-              d = d.unset("in").unset("out").setBend(bend);
-            }
-
-            updateGraph(graph.setEdgeData(d.id, d), true);
+            clickedEdge.current !== undefined) {
+              const edgeId = clickedEdge.current;
+              const edge = graph.edge(edgeId)!;
+              const newPoints = [...edge.points, p1];
+              const g = graph.updateEdgeData(edgeId, d => d.setPoints(newPoints));
+              updateGraph(g, true);
           }
         } else if (uiState.showSelectionRect) {
           const sel = new Set(selectedNodes);
@@ -514,6 +503,7 @@ const GraphEditor = ({
 
     clickedEdge.current = undefined;
     clickedControlPoint.current = undefined;
+    clickedEdgePoint.current = undefined;
     updateUIState("reset");
   };
 
@@ -581,9 +571,16 @@ const GraphEditor = ({
         break;
       }
       case "zxonline.gui.delete": {
-        const g = graph.removeNodes(selectedNodes).removeEdges(selectedEdges);
-        updateGraph(g, true);
-        updateSelection(new Set(), new Set());
+        if (clickedEdgePoint.current !== undefined) {
+          const [edgeId, pointIndex] = clickedEdgePoint.current;
+          const g = graph.updateEdgeData(edgeId, d => d.removePoint(pointIndex));
+          updateGraph(g, true);
+          clickedEdgePoint.current = undefined;
+        } else {
+          const g = graph.removeNodes(selectedNodes).removeEdges(selectedEdges);
+          updateGraph(g, true);
+          updateSelection(new Set(), new Set());
+        }
         break;
       }
       case "zxonline.gui.moveLeft": {
@@ -878,7 +875,13 @@ const GraphEditor = ({
                 }
               }}
               onControlPointPointerDown={i => (clickedControlPoint.current = [edgeData.id, i])}
+              onEdgePointPointerDown={(pointIndex) => {
+                clickedEdge.current = edgeData.id;
+                clickedEdgePoint.current = [edgeData.id, pointIndex];
+                updateUIState({ prevGraph: graph });
+              }}
               sceneCoords={sceneCoords}
+
             />
           ))}
         </g>

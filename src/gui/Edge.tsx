@@ -2,7 +2,7 @@ import { useContext, useMemo, useState } from "preact/hooks";
 import { Coord, EdgeData, NodeData, StyleData } from "../lib/Data";
 import SceneCoords from "../lib/SceneCoords";
 import { colorToHex } from "../lib/color";
-import { computeControlPoints, tangent } from "../lib/curve";
+import { computeControlPoints, tangent, catmullRomToBezier } from "../lib/curve";
 import Styles from "../lib/Styles";
 import ConfigContext from "./ConfigContext";
 
@@ -16,6 +16,7 @@ interface EdgeProps {
   onMouseOver?: () => void;
   onMouseOut?: () => void;
   onControlPointPointerDown?: (cp: 1 | 2) => void;
+  onEdgePointPointerDown?: (pointIndex: number) => void;
   sceneCoords: SceneCoords;
 }
 
@@ -29,6 +30,7 @@ const Edge = ({
   onMouseOver,
   onMouseOut,
   onControlPointPointerDown,
+  onEdgePointPointerDown,
   sceneCoords,
 }: EdgeProps) => {
   const config = useContext(ConfigContext);
@@ -87,47 +89,90 @@ const Edge = ({
     <g onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
       <g onPointerDown={onPointerDown}>
         {bezier ? (
-          <g>
-            <path
-              d={`M${c1.x},${c1.y} C${cp1.x},${cp1.y} ${cp2.x},${cp2.y} ${c2.x},${c2.y}`}
-              stroke="rgb(150, 200, 255)"
-              stroke-width={strokeWidth * 5}
-              fill="none"
-              style={{
-                opacity: highlighted ? 0.4 : 0,
-                transition: config.getConfigBool("enableAnimations") ? "opacity 0.2s ease-out" : "none",
-              }}
-            />
-            <path
-              d={`M${c1.x},${c1.y} C${cp1.x},${cp1.y} ${cp2.x},${cp2.y} ${c2.x},${c2.y}`}
-              stroke={drawColor}
-              stroke-width={strokeWidth}
-              stroke-dasharray={dashArray}
-              fill="none"
-            />
-          </g>
+          (() => {
+            const screenPoints = data.points.map(p => sceneCoords.coordToScreen(p));
+
+            // full point sequence including phantom endpoints
+            const allPoints = [cp1, c1, ...screenPoints, c2, cp2];
+
+            let d = `M${c1.x},${c1.y}`;
+
+            // iterate over each segment between actual points (c1 → ... → c2)
+            for (let i = 1; i < allPoints.length - 2; i++) {
+              const p0 = allPoints[i - 1];
+              const p1 = allPoints[i];
+              const p2 = allPoints[i + 1];
+              const p3 = allPoints[i + 2];
+              const [bcp1, bcp2] = catmullRomToBezier(p0, p1, p2, p3);
+              d += ` C${bcp1.x},${bcp1.y} ${bcp2.x},${bcp2.y} ${p2.x},${p2.y}`;
+            }
+
+            return (
+              <g>
+                <path
+                  d={d}
+                  stroke="rgb(150, 200, 255)"
+                  stroke-width={strokeWidth * 5}
+                  fill="none"
+                  style={{
+                    opacity: highlighted ? 0.4 : 0,
+                    transition: config.getConfigBool("enableAnimations") ? "opacity 0.2s ease-out" : "none",
+                  }}
+                />
+                <path
+                  d={d}
+                  stroke={drawColor}
+                  stroke-width={strokeWidth}
+                  stroke-dasharray={dashArray}
+                  fill="none"
+                />
+              </g>
+            );
+          })()
+          // Bezier code:
+          // <g>
+          //   <path
+          //     d={`M${c1.x},${c1.y} C${cp1.x},${cp1.y} ${cp2.x},${cp2.y} ${c2.x},${c2.y}`}
+          //     stroke="rgb(150, 200, 255)"
+          //     stroke-width={strokeWidth * 5}
+          //     fill="none"
+          //     style={{
+          //       opacity: highlighted ? 0.4 : 0,
+          //       transition: config.getConfigBool("enableAnimations") ? "opacity 0.2s ease-out" : "none",
+          //     }}
+          //   />
+          //   <path
+          //     d={`M${c1.x},${c1.y} C${cp1.x},${cp1.y} ${cp2.x},${cp2.y} ${c2.x},${c2.y}`}
+          //     stroke={drawColor}
+          //     stroke-width={strokeWidth}
+          //     stroke-dasharray={dashArray}
+          //     fill="none"
+          //   />
+          // </g>
         ) : (
           <g>
-            <line
-              x1={c1.x}
-              y1={c1.y}
-              x2={c2.x}
-              y2={c2.y}
+            <polyline
+              points={[c1, ...data.points.map(p => sceneCoords.coordToScreen(p)), c2]
+                .map(p => `${p.x},${p.y}`)
+                .join(" ")}
               stroke="rgb(150, 200, 255)"
               stroke-width={strokeWidth * 5}
+              fill="none"
+              stroke-linejoin="round"
               style={{
                 opacity: highlighted ? 0.4 : 0,
                 transition: config.getConfigBool("enableAnimations") ? "opacity 0.2s ease-out" : "none",
               }}
             />
-            <line
-              x1={c1.x}
-              y1={c1.y}
-              x2={c2.x}
-              y2={c2.y}
+            <polyline
+              points={[c1, ...data.points.map(p => sceneCoords.coordToScreen(p)), c2]
+                .map(p => `${p.x},${p.y}`)
+                .join(" ")}
               stroke={drawColor}
               stroke-width={strokeWidth}
               stroke-dasharray={dashArray}
+              fill="none"
+              stroke-linejoin="round"
             />
           </g>
         )}
@@ -220,6 +265,37 @@ const Edge = ({
             stroke-width={2}
             onPointerDown={() => onControlPointPointerDown?.(2)}
           />
+        </g>
+      )}
+      {(selected || highlighted) && (
+        <g>
+          {data.points.map((p, i) => {
+            const screenP = sceneCoords.coordToScreen(p);
+            const r = 0.07 * sceneCoords.scale;
+            const click_box = 3
+            return (
+              <g key={i} onPointerDown={() => onEdgePointPointerDown?.(i)}>
+                <rect
+                  x={screenP.x - r * click_box}
+                  y={screenP.y - r * click_box}
+                  width={r * 2 * click_box}
+                  height={r * 2 * click_box}
+                  fill="transparent"
+                  stroke="none"
+                />
+                <line
+                  x1={screenP.x - r} y1={screenP.y - r}
+                  x2={screenP.x + r} y2={screenP.y + r}
+                  stroke="blue" stroke-width={2}
+                />
+                <line
+                  x1={screenP.x + r} y1={screenP.y - r}
+                  x2={screenP.x - r} y2={screenP.y + r}
+                  stroke="blue" stroke-width={2}
+                />
+              </g>
+            );
+          })}
         </g>
       )}
     </g>
