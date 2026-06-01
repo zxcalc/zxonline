@@ -40,6 +40,13 @@ function arrayEquals<T>(a1: T[] | undefined, a2: T[] | undefined): boolean {
   return true;
 }
 
+export enum ZXNodeType {
+  Z = "Z",
+  X = "X",
+  Boundary = "Boundary",
+  Hadamard = "Hadamard"
+}
+
 class Coord {
   private _x: number;
   private _y: number;
@@ -185,25 +192,29 @@ class GraphData extends Data<GraphData> {
 }
 
 class NodeData extends Data<NodeData> {
+  private _phase: [number, number] | undefined;
   private _coord: Coord;
-  private _label: string;
+  private _type: ZXNodeType;
 
   public constructor(data?: NodeData) {
     super(data);
+    this._phase = data?._phase;
     this._coord = data?._coord ?? new Coord(0, 0);
-    this._label = data?._label ?? "";
+    this._type = data?._type ?? ZXNodeType.Boundary;
   }
 
   public equals(other: NodeData): boolean {
-    return super.equals(other) && this._coord.equals(other._coord) && this._label === other._label;
+      return (
+        super.equals(other) &&
+        this._coord.equals(other._coord) &&
+        this._type === other._type &&
+        this._phase?.[0] === other._phase?.[0] &&
+        this._phase?.[1] === other._phase?.[1]
+      );
   }
 
   public get coord(): Coord {
     return this._coord;
-  }
-
-  public get label(): string {
-    return this._label;
   }
 
   public setCoord(coord: Coord): NodeData {
@@ -212,10 +223,31 @@ class NodeData extends Data<NodeData> {
     return d;
   }
 
-  public setLabel(label: string): NodeData {
+  public get type(): ZXNodeType {
+    return this._type;
+  }
+
+  public setType(type: ZXNodeType): NodeData {
     const d = new NodeData(this);
-    d._label = label;
+    d._type = type;
     return d;
+  }
+
+  public setPhase(phase: number | undefined): NodeData {
+    const d = new NodeData(this);
+    d._phase = this.degreesToPhase(phase);
+    return d;
+  }
+
+  public get phase(): [number, number] | undefined {
+    return this._phase;
+  }
+
+  public get phaseLabel(): string {
+    if (!this._phase) return "";
+    const [p, q] = this._phase;
+    const degrees = (p / q) * 180;
+    return `${degrees}°`;
   }
 
   public reflect(center: number, horizontal: boolean): NodeData {
@@ -225,6 +257,14 @@ class NodeData extends Data<NodeData> {
         !horizontal ? 2 * center - this.coord.y : this.coord.y
       )
     );
+  }
+
+  private degreesToPhase(degrees: number | undefined): [number, number] | undefined {
+    if (degrees === undefined) return undefined;
+    if (degrees === 0) return [0,1];
+    const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b);
+    const g = gcd(Math.abs(Math.round(degrees)), 180);
+    return [Math.round(degrees) / g, 180 / g];
   }
 }
 

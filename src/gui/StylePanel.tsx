@@ -1,41 +1,35 @@
-import { Coord, EdgeData, NodeData } from "../lib/Data";
+import { NodeData, ZXNodeType } from "../lib/Data";
 import SceneCoords from "../lib/SceneCoords";
-import Styles from "../lib/Styles";
-import Node from "./Node";
-import Edge from "./Edge";
-import { isValidDelimString } from "../lib/TikzParser";
 import { SVGAttributes } from "preact";
 import { useContext } from "preact/hooks";
-import { colorToHex } from "../lib/color";
+import Node from "./Node";
 import ConfigContext from "./ConfigContext";
 
 interface StylePanelProps {
-  editMode: boolean;
-  currentNodeStyle: string | undefined;
-  currentEdgeStyle: string | undefined;
-  onNodeStyleChanged: (style: string, apply: boolean) => void;
-  onEdgeStyleChanged: (style: string, apply: boolean) => void;
-  currentNodeLabel?: string | undefined;
-  onCurrentNodeLabelChanged?: (label: string) => void;
+  currentNodeType: ZXNodeType | undefined;
+  currentPhase: [number, number] | undefined;
+  currentPhaseLabel: string;
+  onNodeTypeChanged: (type: ZXNodeType, apply: boolean) => void;
+  onPhaseChanged: (phase: number | undefined) => void;
+  onPhaseLabelChanged: (label: string) => void;
 }
 
 const StylePanel = ({
-  editMode,
-  currentNodeStyle,
-  currentEdgeStyle,
-  onNodeStyleChanged: setNodeStyle,
-  onEdgeStyleChanged: setEdgeStyle,
-  currentNodeLabel,
-  onCurrentNodeLabelChanged: setCurrentNodeLabel,
+  currentNodeType,
+  currentPhase,
+  currentPhaseLabel,
+  onNodeTypeChanged: setNodeType,
+  onPhaseChanged: setPhase,
+  onPhaseLabelChanged: setPhaseLabelChanged,
 }: StylePanelProps) => {
   const config = useContext(ConfigContext);
-  const styles = config.styles();
   const sceneCoords = new SceneCoords()
     .setZoom(0)
     .setLeft(0.35)
     .setRight(0.35)
     .setUp(0.25)
     .setDown(0.25);
+
   const labelProps: SVGAttributes<SVGTextElement> = {
     x: 22,
     y: 38,
@@ -44,24 +38,21 @@ const StylePanel = ({
     "font-size": "10px",
     "font-style": "italic",
   };
-  const selectionProps = {
-    x: 1,
-    y: 1,
-    width: 43,
-    height: 43,
-    fill: "rgba(150, 200, 255, 0.4)",
-    stroke: "rgba(150, 200, 255, 0.8)",
-    "stroke-width": 1,
-  };
 
-  // dummy node and edge data used for drawing the controls
-  const node = new NodeData();
-  const enode1 = new NodeData().setId(0).setCoord(new Coord(-0.25, 0.0));
-  const enode2 = new NodeData().setId(1).setCoord(new Coord(0.25, 0.0));
-  const edge = new EdgeData().setSource(0).setTarget(1);
+  // Node type options — drives the node selector previews.
+  const nodeTypes = [
+    { type: ZXNodeType.Z, label: "Z" },
+    { type: ZXNodeType.X, label: "X" },
+    { type: ZXNodeType.Boundary, label: "B" },
+    { type: ZXNodeType.Hadamard, label: "H" },
+  ];
 
-  // compute rectangle for fill
-  const fillRectP = sceneCoords.coordToScreen(new Coord(-0.25, 0));
+  // Phase only applies to spiders (Z / X).
+  const phaseEnabled =
+    currentNodeType === ZXNodeType.Z || currentNodeType === ZXNodeType.X;
+
+  const phaseInvalid =
+    currentPhaseLabel !== "" && isNaN(parseFloat(currentPhaseLabel));
 
   return (
     <div
@@ -69,167 +60,86 @@ const StylePanel = ({
         padding: "10px",
         height: "100%",
         overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
-      {!editMode && (
-        <div
-          style={{
-            marginBottom: "2px",
-            marginTop: "2px",
-            marginLeft: "0px",
-            marginRight: "15px",
-          }}
-        >
-          <input
-            id="label-field"
-            value={currentNodeLabel ?? ""}
-            onInput={e =>
-              setCurrentNodeLabel !== undefined &&
-              setCurrentNodeLabel((e.target as HTMLInputElement).value)
-            }
-            onKeyDown={e => {
-              if (e.key === "Enter") {
-                document.getElementById("graph-editor")?.focus();
-              }
-            }}
-            disabled={currentNodeLabel === undefined}
-            className={isValidDelimString("{" + currentNodeLabel + "}") ? "" : "error"}
-          />
-        </div>
-      )}
-
+      {/* Phase input */}
       <div
         style={{
-          overflow: "hidden",
-          height: editMode ? "calc(100% - 30px)" : "calc(100% - 96px)",
-          width: "100%",
+          marginBottom: "10px",
+          marginTop: "2px",
         }}
       >
-        <div
-          id="node-styles"
-          class="frame"
-          style={{
-            height: "calc(70% - 7px)",
-            overflowY: "scroll",
-            backgroundColor: "#fff",
-            color: "#000",
-            marginBottom: "10px",
-          }}
-        >
-          {styles.styles.map(style => {
-            if (style.isEdgeStyle || (editMode && style.name === "none")) {
-              return null;
-            }
-            const shortName = style.name.length > 8 ? style.name.slice(0, 8) + "…" : style.name;
-            return (
-              <a
-                key={style.name}
-                href="#"
-                draggable={false}
-                title={style.name}
-                onClick={e => setNodeStyle(style.name, e.detail > 1)}
-                style={{ outline: "none" }}
-              >
-                <svg
-                  width={sceneCoords.screenWidth}
-                  height={sceneCoords.screenHeight + 12}
-                  style={{ margin: "5px", borderWidth: 0 }}
-                >
-                  <rect
-                    x={1}
-                    y={1}
-                    width={43}
-                    height={43}
-                    fill="rgba(150, 200, 255, 0.4)"
-                    stroke="rgba(150, 200, 255, 0.8)"
-                    stroke-width={1}
-                    style={{
-                      pointerEvents: "none",
-                      opacity: currentNodeStyle === style.name ? 1 : 0,
-                      transition: config.getConfigBool("enableAnimations")
-                        ? "opacity 0.15s ease-out"
-                        : "none",
-                    }}
-                  />
-                  <Node
-                    data={node.setProperty("style", style.name)}
-                    sceneCoords={sceneCoords}
-                  />
-                  <text {...labelProps}>{shortName}</text>
-                </svg>
-              </a>
-            );
-          })}
+        <div style={{ fontSize: "11px", color: "#888", marginBottom: "4px" }}>
+          Phase (degrees)
         </div>
-        <div
-          id="edge-styles"
-          class="frame"
-          style={{
-            height: "calc(30% - 7px)",
-            overflowY: "scroll",
-            backgroundColor: "#fff",
-            color: "#000",
-          }}
-        >
-          {styles.styles.map(style => {
-            if (
-              (style.name !== "none" && !style.isEdgeStyle) ||
-              (editMode && style.name === "none")
-            ) {
-              return null;
+        <input
+          id="phase-field"
+          type="number"
+          step="15"
+          value={phaseEnabled ? currentPhaseLabel.replace("°", "") : ""}
+          onInput={e =>
+            setPhaseLabelChanged((e.target as HTMLInputElement).value)
+          }
+          onKeyDown={e => {
+            if (e.key === "Enter") {
+              document.getElementById("graph-editor")?.focus();
             }
-            const shortName = style.name.length > 8 ? style.name.slice(0, 8) + "…" : style.name;
-            const fillColor = colorToHex(style.property("tikzit fill") ?? style.property("fill"));
-            return (
-              <a
-                key={style.name}
-                href="#"
-                draggable={false}
-                title={style.name}
-                onClick={e => setEdgeStyle(style.name, e.detail > 1)}
-                style={{ outline: "none" }}
+          }}
+          disabled={!phaseEnabled}
+          className={phaseInvalid ? "error" : ""}
+          style={{ width: "100%", boxSizing: "border-box" }}
+        />
+      </div>
+
+      {/* Node type selector */}
+      <div style={{ marginBottom: "10px" }}>
+        <div style={{ fontSize: "11px", color: "#888", marginBottom: "4px" }}>
+          Node type
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap" }}>
+          {nodeTypes.map(({ type, label }) => (
+            <a
+              key={type}
+              href="#"
+              draggable={false}
+              title={type}
+              onClick={e => {
+                e.preventDefault();
+                setNodeType(type, true);
+              }}
+              style={{ outline: "none" }}
+            >
+              <svg
+                width={sceneCoords.screenWidth}
+                height={sceneCoords.screenHeight + 12}
+                style={{ margin: "5px", borderWidth: 0 }}
               >
-                <svg
-                  width={sceneCoords.screenWidth}
-                  height={sceneCoords.screenHeight + 12}
-                  style={{ margin: "5px" }}
-                >
-                  <rect
-                    x={1}
-                    y={1}
-                    width={43}
-                    height={43}
-                    fill="rgba(150, 200, 255, 0.4)"
-                    stroke="rgba(150, 200, 255, 0.8)"
-                    stroke-width={1}
-                    style={{
-                      pointerEvents: "none",
-                      opacity: currentEdgeStyle === style.name ? 1 : 0,
-                      transition: config.getConfigBool("enableAnimations")
-                        ? "opacity 0.15s ease-out"
-                        : "none",
-                    }}
-                  />
-                  {fillColor && (
-                    <rect
-                      x={fillRectP.x}
-                      y={fillRectP.y}
-                      width={sceneCoords.scale * 0.5}
-                      height={sceneCoords.scale * 0.25}
-                      fill={fillColor}
-                    />
-                  )}
-                  <Edge
-                    data={edge.setProperty("style", style.name)}
-                    sourceData={enode1}
-                    targetData={enode2}
-                    sceneCoords={sceneCoords}
-                  />
-                  <text {...labelProps}>{shortName}</text>
-                </svg>
-              </a>
-            );
-          })}
+                <rect
+                  x={1}
+                  y={1}
+                  width={43}
+                  height={43}
+                  fill="rgba(150, 200, 255, 0.4)"
+                  stroke="rgba(150, 200, 255, 0.8)"
+                  stroke-width={1}
+                  style={{
+                    pointerEvents: "none",
+                    opacity: currentNodeType === type ? 1 : 0,
+                    transition: config.getConfigBool("enableAnimations")
+                      ? "opacity 0.15s ease-out"
+                      : "none",
+                  }}
+                />
+                <Node
+                  data={new NodeData().setType(type)}
+                  sceneCoords={sceneCoords}
+                />
+                <text {...labelProps}>{label}</text>
+              </svg>
+            </a>
+          ))}
         </div>
       </div>
     </div>

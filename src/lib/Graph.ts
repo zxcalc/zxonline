@@ -1,4 +1,4 @@
-import { NodeData, EdgeData, GraphData, mapEquals, Coord } from "./Data";
+import { NodeData, EdgeData, GraphData, mapEquals, Coord , ZXNodeType } from "./Data";
 import { moveForward, moveBackward, moveToFront, moveToBack } from "./util";
 
 class Graph {
@@ -212,7 +212,9 @@ public splitEdge(edgeId: number): Graph {
     const newNodeId = g.freshNodeId;
     const newNode = new NodeData()
       .setId(newNodeId)
-      .setCoord(points[i]);
+      .setCoord(points[i])
+      .setType(ZXNodeType.Z)
+      .setPhase(0);
     g = g.addNodeWithData(newNode);
 
     const newEdgeId = g.freshEdgeId;
@@ -530,7 +532,7 @@ public joinEdges(edges: Iterable<number>): Graph {
       }
 
       if (dt !== "") result += " ";
-      result += `(${d.id}) at (${d.coord.x}, ${d.coord.y}) {${d.label}};\n`;
+      result += `(${d.id}) at (${d.coord.x}, ${d.coord.y}) {${d.phaseLabel}};\n`;
     }
   }
   result += "\t\\end{pgfonlayer}\n";

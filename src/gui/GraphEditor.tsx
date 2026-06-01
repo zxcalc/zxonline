@@ -6,7 +6,7 @@ import { drawGrid } from "../lib/grid";
 import SceneCoords from "../lib/SceneCoords";
 import Node from "./Node";
 import Edge from "./Edge";
-import Styles from "../lib/Styles";
+import { ZXNodeType } from "../lib/Data";
 import { Coord, EdgeData, NodeData} from "../lib/Data";
 import { shortenLine } from "../lib/curve";
 import { parseTikzPicture } from "../lib/TikzParser";
@@ -23,9 +23,7 @@ interface GraphEditorProps {
   selectedNodes: Set<number>;
   selectedEdges: Set<number>;
   onSelectionChanged: (selectedNodes: Set<number>, selectedEdges: Set<number>) => void;
-  styles: Styles;
-  currentNodeStyle: string;
-  currentEdgeStyle: string;
+  currentNodeType: ZXNodeType;
   toggleStylePanel: (show: boolean | undefined) => void;
 }
 
@@ -61,9 +59,7 @@ const GraphEditor = ({
   selectedNodes,
   selectedEdges,
   onSelectionChanged: updateSelection,
-  styles,
-  currentNodeStyle,
-  currentEdgeStyle,
+  currentNodeType,
   toggleStylePanel,
 }: GraphEditorProps) => {
   const config = useContext(ConfigContext);
@@ -425,9 +421,9 @@ const GraphEditor = ({
           if (clickedNode !== undefined) {
             toggleStylePanel(true);
             setTimeout(() => {
-              const labelField = document.getElementById("label-field") as HTMLInputElement;
-              labelField.focus();
-              labelField.select();
+              const phaseField = document.getElementById("phase-field") as HTMLInputElement;
+              phaseField?.focus();
+              phaseField?.select();
             }, 10);
           } else if (
             clickedEdge.current !== undefined) {
@@ -473,7 +469,7 @@ const GraphEditor = ({
           const node = new NodeData()
             .setId(graph.freshNodeId)
             .setCoord(p1.snapToGrid(4))
-            .setProperty("style", currentNodeStyle);
+            .setType(currentNodeType);
           updateGraph(graph.addNodeWithData(node), true);
         }
         break;
@@ -483,15 +479,6 @@ const GraphEditor = ({
             .setId(graph.freshEdgeId)
             .setSource(uiState.edgeStartNode)
             .setTarget(uiState.edgeEndNode)
-          if (currentEdgeStyle !== "none") {
-            edge = edge.setProperty("style", currentEdgeStyle);
-          }
-          if (graph.node(edge.source)?.property("style") === "none") {
-            edge = edge.setSourceAnchor("center");
-          }
-          if (graph.node(edge.target)?.property("style") === "none") {
-            edge = edge.setTargetAnchor("center");
-          }
           updateGraph(graph.addEdgeWithData(edge), true);
         }
         break;

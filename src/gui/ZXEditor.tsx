@@ -1,17 +1,11 @@
 import { useState, useEffect, useContext } from "preact/hooks";
-
+import { ZXNodeType } from "../lib/Data";
 import GraphEditor from "./GraphEditor";
 import { GraphTool } from "./GraphEditor";
 import Graph from "../lib/Graph";
-import {
-  isValidDelimString,
-  parseTikzStyles,
-} from "../lib/TikzParser";
 import StylePanel from "./StylePanel";
-import Styles from "../lib/Styles";
 import Toolbar from "./Toolbar";
 import Splitpane from "./Splitpane";
-import ConfigContext from "./ConfigContext";
 
 
 
@@ -19,16 +13,12 @@ const ZXEditor = () => {
   const [graph, setGraph] = useState<Graph>(new Graph());
   const [enabled, setEnabled] = useState<boolean>(true);
   const [tool, setTool] = useState<GraphTool>("select");
-  const [currentNodeLabel, setCurrentNodeLabel] = useState<string | undefined>(undefined);
-  const [currentNodeStyle, setCurrentNodeStyle] = useState<string>("none");
-  const [currentEdgeStyle, setCurrentEdgeStyle] = useState<string>("none");
+  const [currentPhase, setCurrentPhase] = useState<[number, number] | undefined>(undefined);
+  const [currentPhaseLabel, setCurrentPhaseLabel] = useState<string>("");
+  const [currentNodeType, setCurrentNodeType] = useState<ZXNodeType>(ZXNodeType.Boundary);
   const [selectedNodes, setSelectedNodes] = useState<Set<number>>(new Set());
   const [selectedEdges, setSelectedEdges] = useState<Set<number>>(new Set());
   const [showSecondPanel, setShowSecondPanel] = useState<boolean>(true);
-
-  const config = useContext(ConfigContext);
-  const styles = config.styles();
-
 
   const updateFromGui = (tikz: string) => {
     // stub
@@ -42,69 +32,35 @@ const ZXEditor = () => {
     }
   };
 
-  const handleCurrentNodeLabelChanged = (label: string) => {
+  const handleCurrentNodePhaseChanged = (phase: number | undefined) => {
     // console.log("label changed to", label);
-    if (selectedNodes.size === 1) {
-      setCurrentNodeLabel(label);
+    if (selectedNodes.size === 1 && graph !== undefined) {
+      const [n] = selectedNodes;
+      const g = graph.updateNodeData(n, d => d.setPhase(phase));
+      setCurrentPhase(g.node(n)?.phase);
+      handleGraphChange(g, true);
+    }
+  };
 
-      if (graph !== undefined && isValidDelimString("{" + label + "}")) {
-        const [n] = selectedNodes;
-        const g = graph.updateNodeData(n, d => d.setLabel(label));
-        handleGraphChange(g, true);
+  const handlePhaseLabelChanged = (label: string) => {
+    if (label.trim() === "") {
+      handleCurrentNodePhaseChanged(undefined);
+    } else {
+      const degrees = parseFloat(label);
+      if (!isNaN(degrees)) {
+        handleCurrentNodePhaseChanged(degrees);
       }
     }
   };
 
-  const handleNodeStyleChanged = (style: string, apply: boolean) => {
-    setCurrentNodeStyle(style);
+  const handleNodeTypeChanged = (type: ZXNodeType, apply: boolean) => {
+    setCurrentNodeType(type);
     if (apply) {
-      let g = graph;
-      g = g.mapEdgeData(d => {
-        let d1 = d;
-        if (selectedNodes.has(d.source)) {
-          const oldStyle = g.node(d.source)?.property("style");
-          if (style === "none" && oldStyle !== "none" && d1.sourceAnchor === undefined) {
-            d1 = d1.setSourceAnchor("center");
-          } else if (style !== "none" && oldStyle === "none" && d1.sourceAnchor === "center") {
-            d1 = d1.setSourceAnchor(undefined);
-          }
-        }
-
-        if (selectedNodes.has(d.target)) {
-          const oldStyle = g.node(d.target)?.property("style");
-          if (style === "none" && oldStyle !== "none" && d1.targetAnchor === undefined) {
-            d1 = d1.setTargetAnchor("center");
-          } else if (style !== "none" && oldStyle === "none" && d1.targetAnchor === "center") {
-            d1 = d1.setTargetAnchor(undefined);
-          }
-        }
-        return d1;
-      });
-
-      g = g.mapNodeData(d => (selectedNodes.has(d.id) ? d.setProperty("style", style) : d));
-
+      const g = graph.mapNodeData(d =>
+        selectedNodes.has(d.id) ? d.setType(type) : d
+      );
       handleGraphChange(g, true);
     }
-
-    document.getElementById("graph-editor")?.focus();
-  };
-
-  const handleEdgeStyleChanged = (style: string, apply: boolean) => {
-    setCurrentEdgeStyle(style);
-    if (apply) {
-      const g = graph.mapEdgeData(d => {
-        if (selectedEdges.has(d.id)) {
-          if (style === "none") {
-            return d.unset("style");
-          } else {
-            return d.setProperty("style", style);
-          }
-        }
-        return d;
-      });
-      handleGraphChange(g, true);
-    }
-
     document.getElementById("graph-editor")?.focus();
   };
 
@@ -125,9 +81,12 @@ const ZXEditor = () => {
 
     if (selectedNodes.size === 1) {
       const [n] = selectedNodes;
-      setCurrentNodeLabel(graph.node(n)?.label);
+      setCurrentPhase(graph.node(n)?.phase);
+      setCurrentPhaseLabel(graph.node(n)?.phaseLabel ?? "");
+      
     } else {
-      setCurrentNodeLabel(undefined);
+      setCurrentPhase(undefined);
+      setCurrentPhaseLabel("");
     }
   };
 
@@ -159,21 +118,18 @@ const ZXEditor = () => {
               selectedNodes={selectedNodes}
               selectedEdges={selectedEdges}
               onSelectionChanged={handleSelectionChanged}
-              styles={styles}
-              currentNodeStyle={currentNodeStyle}
-              currentEdgeStyle={currentEdgeStyle}
+              currentNodeType={currentNodeType}
               toggleStylePanel={toggleStylePanel}
             />
           </div>
         </div>
         <StylePanel
-          editMode={false}
-          currentNodeStyle={currentNodeStyle}
-          currentEdgeStyle={currentEdgeStyle}
-          onNodeStyleChanged={handleNodeStyleChanged}
-          onEdgeStyleChanged={handleEdgeStyleChanged}
-          currentNodeLabel={currentNodeLabel}
-          onCurrentNodeLabelChanged={handleCurrentNodeLabelChanged}
+          currentNodeType={currentNodeType}
+          currentPhase={currentPhase}
+          currentPhaseLabel={currentPhaseLabel}
+          onNodeTypeChanged={handleNodeTypeChanged}
+          onPhaseChanged={handleCurrentNodePhaseChanged}
+          onPhaseLabelChanged={handlePhaseLabelChanged}
         />
       </Splitpane>
     </div>
