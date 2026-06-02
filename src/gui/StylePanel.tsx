@@ -1,7 +1,7 @@
 import { NodeData, ZXNodeType } from "../lib/Data";
 import SceneCoords from "../lib/SceneCoords";
 import { SVGAttributes } from "preact";
-import { useContext } from "preact/hooks";
+import { useContext , useState , useEffect } from "preact/hooks";
 import Node from "./Node";
 import ConfigContext from "./ConfigContext";
 
@@ -54,6 +54,20 @@ const StylePanel = ({
   const phaseInvalid =
     currentPhaseLabel !== "" && isNaN(parseFloat(currentPhaseLabel));
 
+  // Local editing buffer for the phase field. 
+  const [phaseDraft, setPhaseDraft] = useState<string>("");
+
+  // Re-sync the draft when the selected node's phase changes (e.g. a
+  // different node is selected, or fusion rewrites the phase).
+  useEffect(() => {
+    setPhaseDraft(currentPhaseLabel.replace("°", ""));
+  }, [currentPhaseLabel]);
+
+  const commitPhase = () => {
+    setPhaseLabelChanged(phaseDraft);
+    document.getElementById("graph-editor")?.focus();
+  };
+
   return (
     <div
       style={{
@@ -76,17 +90,26 @@ const StylePanel = ({
         </div>
         <input
           id="phase-field"
-          type="number"
-          step="15"
-          value={phaseEnabled ? currentPhaseLabel.replace("°", "") : ""}
-          onInput={e =>
-            setPhaseLabelChanged((e.target as HTMLInputElement).value)
-          }
-          onKeyDown={e => {
-            if (e.key === "Enter") {
-              document.getElementById("graph-editor")?.focus();
+          type="text"
+          inputMode="numeric"
+          value={phaseEnabled ? phaseDraft : ""}
+          onInput={e => {
+            const raw = (e.target as HTMLInputElement).value;
+            // Allow only an optional leading minus and digits/decimal point.
+            // Reject anything else so the draft can never hold non-numeric text.
+            if (/^-?\d*\.?\d*$/.test(raw)) {
+              setPhaseDraft(raw);
+            } else {
+              // Reject the keystroke: force the field back to the last valid draft.
+              (e.target as HTMLInputElement).value = phaseDraft;
             }
           }}
+          onKeyDown={e => {
+            if (e.key === "Enter") {
+              commitPhase();
+            }
+          }}
+          onBlur={commitPhase}
           disabled={!phaseEnabled}
           className={phaseInvalid ? "error" : ""}
           style={{ width: "100%", boxSizing: "border-box" }}

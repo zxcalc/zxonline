@@ -32,12 +32,12 @@ const ZXEditor = () => {
     }
   };
 
-  const handleCurrentNodePhaseChanged = (phase: number | undefined) => {
-    // console.log("label changed to", label);
+const handleCurrentNodePhaseChanged = (phase: number | undefined) => {
     if (selectedNodes.size === 1 && graph !== undefined) {
       const [n] = selectedNodes;
       const g = graph.updateNodeData(n, d => d.setPhase(phase));
       setCurrentPhase(g.node(n)?.phase);
+      setCurrentPhaseLabel(g.node(n)?.phaseLabel ?? "");
       handleGraphChange(g, true);
     }
   };
