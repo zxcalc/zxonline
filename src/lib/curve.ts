@@ -1,4 +1,5 @@
-import { Coord, EdgeData, NodeData } from "./Data";
+import { Coord, EdgeData, NodeData, ZXNodeType } from "./Data";
+import { ZXNodeStyles } from "./ZXStyles";
 import Styles from "./Styles";
 
 function almostZero(f: number): boolean {
@@ -97,7 +98,7 @@ function polygonOffset(angle: number, startAngle: number, sides: number, r: numb
   const a0 = startAngle + segment * angleStep;
   const a1 = a0 + angleStep;
 
-  const outerR = 0.2 * (1 / Math.cos(Math.PI / sides));
+  const outerR = r * (1 / Math.cos(Math.PI / sides));
 
   // compute vertices of the edge
   const v0x = outerR * Math.cos(a0);
@@ -176,28 +177,26 @@ export function computeControlPoints(
   const cp1 = c1.shift(cpDist * Math.cos(outAngle), cpDist * Math.sin(outAngle));
   const cp2 = c2.shift(cpDist * Math.cos(inAngle), cpDist * Math.sin(inAngle));
 
-  if ((sourceData.property("style") ?? "none") !== "none") {
-    const style = styles.style(sourceData.property("style"));
-    if ((style.property("tikzit shape") ?? style.property("shape")) === "rectangle") {
-      // compute intersection with rectangle
-      const offset = polygonOffset(outAngle, Math.PI / 4, 4, 0.2);
-      c1 = c1.shift(offset.x, offset.y);
-    } else {
-      // default to circle
-      c1 = c1.shift(Math.cos(outAngle) * 0.2, Math.sin(outAngle) * 0.2);
-    }
+  // Clip the wire endpoints to each node's drawn boundary. The path is
+  // computed centre-to-centre (so the angle is correct), but the visible
+  // stroke stops at the node's edge. Clip radius is the node's drawn
+  // radius: r * size in screen space == 0.2 * size in coord space.
+  const sourceStyle = ZXNodeStyles[sourceData.type];
+  const sourceR = 0.2 * sourceStyle.size;
+  if (sourceStyle.shape === "rectangle") {
+    const offset = polygonOffset(outAngle, Math.PI / 4, 4, sourceR);
+    c1 = c1.shift(offset.x, offset.y);
+  } else {
+    c1 = c1.shift(Math.cos(outAngle) * sourceR, Math.sin(outAngle) * sourceR);
   }
 
-  if ((targetData.property("style") ?? "none") !== "none") {
-    const style = styles.style(targetData.property("style"));
-    if ((style.property("tikzit shape") ?? style.property("shape")) === "rectangle") {
-      // compute intersection with rectangle
-      const offset = polygonOffset(inAngle, Math.PI / 4, 4, 0.2);
-      c2 = c2.shift(offset.x, offset.y);
-    } else {
-      // default to circle
-      c2 = c2.shift(Math.cos(inAngle) * 0.2, Math.sin(inAngle) * 0.2);
-    }
+  const targetStyle = ZXNodeStyles[targetData.type];
+  const targetR = 0.2 * targetStyle.size;
+  if (targetStyle.shape === "rectangle") {
+    const offset = polygonOffset(inAngle, Math.PI / 4, 4, targetR);
+    c2 = c2.shift(offset.x, offset.y);
+  } else {
+    c2 = c2.shift(Math.cos(inAngle) * targetR, Math.sin(inAngle) * targetR);
   }
 
   return [[c1, c2, cp1, cp2], cpDist, bezier];
