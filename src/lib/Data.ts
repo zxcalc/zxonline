@@ -230,12 +230,30 @@ class NodeData extends Data<NodeData> {
   public setType(type: ZXNodeType): NodeData {
     const d = new NodeData(this);
     d._type = type;
+    if (type !== ZXNodeType.Z && type !== ZXNodeType.X) {
+      d._phase = undefined;
+    }
     return d;
   }
 
   public setPhase(phase: number | undefined): NodeData {
     const d = new NodeData(this);
-    d._phase = this.degreesToPhase(phase);
+    if (this._type !== ZXNodeType.Z && this._type !== ZXNodeType.X) {
+      d._phase = undefined;
+    } else {
+      d._phase = this.degreesToPhase(phase);  
+    }
+    return d;
+  }
+
+  // Add another phase to this node's phase, wrapping mod 2π. No-op on
+  // non-spiders (they are always phaseless). Used by spider fusion.
+  public addPhase(other: [number, number] | undefined): NodeData {
+    if (this._type !== ZXNodeType.Z && this._type !== ZXNodeType.X) {
+      return this;
+    }
+    const d = new NodeData(this);
+    d._phase = this.addPhases(this._phase, other);
     return d;
   }
 
@@ -259,12 +277,39 @@ class NodeData extends Data<NodeData> {
     );
   }
 
+  private addPhases(
+    a: [number, number] | undefined,
+    b: [number, number] | undefined
+  ): [number, number] | undefined {
+    if (a === undefined && b === undefined) return undefined;
+    const [an, ad] = a ?? [0, 1];
+    const [bn, bd] = b ?? [0, 1];
+
+    // a/ad + b/bd = (an*bd + bn*ad) / (ad*bd)
+    let num = an * bd + bn * ad;
+    let den = ad * bd;
+
+    // wrap mod 2 (i.e. numerator mod 2*den), keeping result in [0, 2)
+    const mod = 2 * den;
+    num = ((num % mod) + mod) % mod;
+
+    if (num === 0) return undefined;
+
+    // reduce by gcd
+    const gcd = (x: number, y: number): number => (y === 0 ? x : gcd(y, x % y));
+    const g = gcd(Math.abs(num), den);
+    return [num / g, den / g];
+  }
+
   private degreesToPhase(degrees: number | undefined): [number, number] | undefined {
     if (degrees === undefined) return undefined;
-    if (degrees === 0) return [0,1];
-    const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b);
-    const g = gcd(Math.abs(Math.round(degrees)), 180);
-    return [Math.round(degrees) / g, 180 / g];
+    // Wrap to [0, 360) so e.g. 450° -> 90°, -90° -> 270°.
+    let deg = Math.round(degrees) % 360;
+    if (deg < 0) deg += 360;
+    if (deg === 0) return undefined; // phase 0 == phaseless
+    const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+    const g = gcd(deg, 180);
+    return [deg / g, 180 / g];
   }
 }
 
