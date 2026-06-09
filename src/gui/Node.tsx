@@ -8,10 +8,11 @@ interface NodeProps {
   data: NodeData;
   selected?: boolean;
   highlight?: boolean;
+  fusing?: boolean;
   sceneCoords: SceneCoords;
 }
 
-const Node = ({ data, selected, highlight, sceneCoords }: NodeProps) => {
+const Node = ({ data, selected, highlight, fusing, sceneCoords }: NodeProps) => {
   const config = useContext(ConfigContext);
   const coord = sceneCoords.coordToScreen(data.coord);
   const r = sceneCoords.scale * 0.2;
@@ -35,8 +36,8 @@ const Node = ({ data, selected, highlight, sceneCoords }: NodeProps) => {
           width={2 * nodeR}
           height={2 * nodeR}
           fill={nodeStyle.fill}
-          stroke={nodeStyle.stroke}
-          stroke-width={strokeWidth}
+          stroke={fusing ? "none" : nodeStyle.stroke}
+          stroke-width={fusing ? 0 : strokeWidth}
         />
       );
     } else {
@@ -44,8 +45,8 @@ const Node = ({ data, selected, highlight, sceneCoords }: NodeProps) => {
         <circle
           r={nodeR}
           fill={nodeStyle.fill}
-          stroke={nodeStyle.stroke}
-          stroke-width={strokeWidth}
+          stroke={fusing ? "none" : nodeStyle.stroke}
+          stroke-width={fusing ? 0 : strokeWidth}
         />
       );
     }

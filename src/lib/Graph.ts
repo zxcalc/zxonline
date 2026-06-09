@@ -195,47 +195,47 @@ class Graph {
     }
     return g;
   }
-// Split edge by converting points to nodes.
-public splitEdge(edgeId: number): Graph {
-  let g = new Graph(this);
-  const edge = g._edgeData.get(edgeId);
-  if (!edge || edge.points.length === 0) return this;
+  // Split edge by converting points to nodes.
+  public splitEdge(edgeId: number): Graph {
+    let g = new Graph(this);
+    const edge = g._edgeData.get(edgeId);
+    if (!edge || edge.points.length === 0) return this;
 
-  const points = edge.points;
-  let prevNodeId = edge.source;
+    const points = edge.points;
+    let prevNodeId = edge.source;
 
-  // remove original edge
-  g = g.removeEdges([edgeId]);
+    // remove original edge
+    g = g.removeEdges([edgeId]);
 
-  // create a new node and edge for each intermediate point
-  for (let i = 0; i < points.length; i++) {
-    const newNodeId = g.freshNodeId;
-    const newNode = new NodeData()
-      .setId(newNodeId)
-      .setCoord(points[i])
-      .setType(ZXNodeType.Z)
-      .setPhase(0);
-    g = g.addNodeWithData(newNode);
+    // create a new node and edge for each intermediate point
+    for (let i = 0; i < points.length; i++) {
+      const newNodeId = g.freshNodeId;
+      const newNode = new NodeData()
+        .setId(newNodeId)
+        .setCoord(points[i])
+        .setType(ZXNodeType.Z)
+        .setPhase(0);
+      g = g.addNodeWithData(newNode);
 
-    const newEdgeId = g.freshEdgeId;
-    const newEdge = new EdgeData()
-      .setId(newEdgeId)
+      const newEdgeId = g.freshEdgeId;
+      const newEdge = new EdgeData()
+        .setId(newEdgeId)
+        .setSource(prevNodeId)
+        .setTarget(newNodeId);
+      g = g.addEdgeWithData(newEdge);
+
+      prevNodeId = newNodeId;
+    }
+
+    // final edge from last new node to original target
+    const finalEdge = new EdgeData()
+      .setId(g.freshEdgeId)
       .setSource(prevNodeId)
-      .setTarget(newNodeId);
-    g = g.addEdgeWithData(newEdge);
+      .setTarget(edge.target);
+    g = g.addEdgeWithData(finalEdge);
 
-    prevNodeId = newNodeId;
+    return g;
   }
-
-  // final edge from last new node to original target
-  const finalEdge = new EdgeData()
-    .setId(g.freshEdgeId)
-    .setSource(prevNodeId)
-    .setTarget(edge.target);
-  g = g.addEdgeWithData(finalEdge);
-
-  return g;
-}
 
   // join two edges that connect
   // Returns undefined if the edges cannot be joined and always preserves the first edge ID
@@ -294,6 +294,70 @@ public splitEdge(edgeId: number): Graph {
 
   return graph;
 }
+
+  // Fuse the absorbed spider into the survivor spider. The survivor keeps
+  // its id and position; its phase gains the absorbed spider's phase. Wires
+  // between the two are deleted (internal); the absorbed spider's other wires
+  // re-point to the survivor. Caller should ensure both are same-colour spiders.
+  public fuseSpiderInto(survivorId: number, absorbedId: number): Graph {
+    if (survivorId === absorbedId) return this;
+
+    const survivor = this._nodeData.get(survivorId);
+    const absorbed = this._nodeData.get(absorbedId);
+    if (survivor === undefined || absorbed === undefined) return this;
+
+    const isSpider = (t: ZXNodeType) => t === ZXNodeType.Z || t === ZXNodeType.X;
+    if (!isSpider(survivor.type) || survivor.type !== absorbed.type) {
+      return this;
+    }
+
+    // Spider fusion requires a shared wire: the two spiders must be directly
+    // connected by at least one edge. Same-colour but disconnected spiders
+    // are distinct and must not fuse.
+    let connected = false;
+    for (const e of this._edgeData.values()) {
+      if (
+        (e.source === survivorId && e.target === absorbedId) ||
+        (e.source === absorbedId && e.target === survivorId)
+      ) {
+        connected = true;
+        break;
+      }
+    }
+    if (!connected) return this;
+
+    let g = new Graph(this);
+    g._nodeData = new Map(this._nodeData);
+    g._edgeData = new Map(this._edgeData);
+
+    // 1. sum phases into the survivor
+    g._nodeData.set(survivorId, survivor.addPhase(absorbed.phase));
+
+    // 2. handle every edge touching the absorbed spider
+    for (const e of this._edgeData.values()) {
+      const touchesAbsorbed = e.source === absorbedId || e.target === absorbedId;
+      if (!touchesAbsorbed) continue;
+
+      // re-point BOTH ends if they reference the absorbed spider
+      let re = e;
+      if (re.source === absorbedId) re = re.setSource(survivorId);
+      if (re.target === absorbedId) re = re.setTarget(survivorId);
+
+      // any edge now running survivor -> survivor is internal: delete it
+      // (this covers wires between the two spiders AND self-loops on the absorbed node)
+      if (re.source === survivorId && re.target === survivorId) {
+        g._edgeData.delete(e.id);
+        continue;
+      }
+
+      g._edgeData.set(e.id, re);
+    }
+
+    // 3. remove the absorbed spider
+    g._nodeData.delete(absorbedId);
+
+    return g;
+  }
 
 // Join groups of edges by selected subgroupings - can convert back only to continuous grouping.
 public joinEdges(edges: Iterable<number>): Graph {

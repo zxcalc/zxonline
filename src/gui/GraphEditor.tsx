@@ -40,6 +40,8 @@ interface UIState {
   addEdgeLineStart?: Coord;
   addEdgeLineEnd?: Coord;
   highlightEdge?: number;
+  fusionTarget?: number;
+  fusionDragged?: number;
 }
 
 const uiStateReducer = (state: UIState, action: UIState | "reset"): UIState => {
@@ -71,6 +73,7 @@ const GraphEditor = ({
   const clickedEdge = useRef<number | undefined>(undefined);
   const clickedControlPoint = useRef<[number, 1 | 2] | undefined>(undefined);
   const clickedEdgePoint = useRef<[number, number] | undefined>(undefined);
+  const fusionPair = useRef<{ target: number; dragged: number } | undefined>(undefined);
 
   // edge selection is calculated from selected nodes ?? Unsure of necessity
 
@@ -80,6 +83,34 @@ const GraphEditor = ({
   //     .filter(d => selectedNodes.has(d.source) && selectedNodes.has(d.target))
   //     .map(d => d.id)
   // ]);
+  const FUSION_RADIUS = 0.4; // coord-space; ~ node radius
+
+  const fusionCandidate = (draggedId: number, dropCoord: Coord): number | undefined => {
+    const dragged = graph.node(draggedId);
+    if (dragged === undefined) return undefined;
+    const isSpider = (t: ZXNodeType) => t === ZXNodeType.Z || t === ZXNodeType.X;
+    if (!isSpider(dragged.type)) return undefined;
+
+    for (const n of graph.nodes) {
+      if (n.id === draggedId) continue;
+      if (n.type !== dragged.type) continue; // same colour only
+
+      // must be connected to the dragged spider by a wire
+      const connected = graph.edges.some(
+        e =>
+          (e.source === draggedId && e.target === n.id) ||
+          (e.source === n.id && e.target === draggedId)
+      );
+      if (!connected) continue;
+      
+      const dx = n.coord.x - dropCoord.x;
+      const dy = n.coord.y - dropCoord.y;
+      if (Math.sqrt(dx * dx + dy * dy) <= FUSION_RADIUS) {
+        return n.id;
+      }
+    }
+    return undefined;
+  };
 
   useEffect(() => {
     // Grab focus initially and when the editor tab gains focus
@@ -288,6 +319,22 @@ const GraphEditor = ({
             ),
             false
           );
+          // single-spider drag: detect a same-colour fusion target in range
+          if (selectedNodes.size === 1) {
+            const [draggedId] = selectedNodes;
+            const draggedCoord = sceneCoords
+              .coordFromScreen(uiState.mouseDownPos)
+              .shift(dx, dy); // where the dragged node now sits
+            // recompute against the live (pre-move) graph positions of OTHER nodes
+            const target = fusionCandidate(draggedId, draggedCoord);
+            if (target !== undefined) {
+              fusionPair.current = { target, dragged: draggedId };
+              updateUIState({ fusionTarget: target, fusionDragged: draggedId });
+            } else {
+              fusionPair.current = undefined;
+              updateUIState({ fusionTarget: undefined, fusionDragged: undefined });
+            }
+          }
         } else if (clickedControlPoint.current !== undefined) {
           const [edge, pt] = clickedControlPoint.current;
           let d = graph.edge(edge)!;
@@ -455,6 +502,11 @@ const GraphEditor = ({
             if (clickedNode !== undefined) {
               updateSelection(new Set([clickedNode]), new Set());
             }
+          } else if (fusionPair.current !== undefined) {
+            const { target, dragged } = fusionPair.current;
+            const g = graph.fuseSpiderInto(target, dragged);
+            updateGraph(g, true);
+            updateSelection(new Set([target]), new Set());
           } else if (!uiState.prevGraph?.equals(graph)) {
             updateGraph(graph, true);
           }
@@ -491,6 +543,7 @@ const GraphEditor = ({
     clickedEdge.current = undefined;
     clickedControlPoint.current = undefined;
     clickedEdgePoint.current = undefined;
+    fusionPair.current = undefined;
     updateUIState("reset");
   };
 
@@ -879,6 +932,7 @@ const GraphEditor = ({
               data={data}
               selected={selectedNodes.has(data.id)}
               highlight={uiState.edgeStartNode === data.id || uiState.edgeEndNode === data.id}
+              fusing={uiState.fusionTarget === data.id || uiState.fusionDragged === data.id}
               sceneCoords={sceneCoords}
             />
           ))}
