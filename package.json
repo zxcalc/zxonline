@@ -11,6 +11,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:website": "npm run build && node scripts/sync-website-canvas.mjs",
+    "serve:website": "npm run build:website && node scripts/serve-website.mjs",
     "build-test": "vite build --mode test",
     "watch-test": "vite build --mode test --watch",
     "lint": "tsc && eslint .",

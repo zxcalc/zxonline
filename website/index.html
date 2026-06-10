@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ZX Online Mockup</title>
+    <link rel="stylesheet" href="styles.css?v=20260609c">
+  </head>
+  <body>
+    <main class="page">
+      <header class="page-header">
+        <h1>ZX Online <span class="papyrus">Mockup</span></h1>
+      </header>
+
+      <nav class="toc" aria-label="Table of contents">
+        <h2>Table of contents</h2>
+        <ul>
+          <li><a href="#intro">0. General Introduction</a></li>
+          <li><a href="#yanking">1. Yanking</a></li>
+          <li><a href="#spider-fusion">2. Spider Fusion</a></li>
+          <li><a href="#identity">3. Identity</a></li>
+          <li><a href="#color-change">4. Colour Change</a></li>
+          <li><a href="#leg-chop">5. Leg Chop</a></li>
+          <li><a href="#copy">6. Copy</a></li>
+          <li><a href="#square-popping">7. Square Popping</a></li>
+          <li><a href="#final-exercise">8. Final Exercise</a></li>
+        </ul>
+      </nav>
+
+      <section id="intro" class="section">
+        <h2>0. General Introduction</h2>
+
+        <div class="slide">
+          <p>All Quantum circuits are made of spiders and wires&hellip;</p>
+          <figure>
+            <img src="assets/pdf-images/intro-circuit.png" alt="Quantum circuit written with unitary boxes and the same circuit written with spiders and wires.">
+            <figcaption>
+              Left: Quantum circuit written with unitary boxes<br>
+              Right: The same circuit written with spiders and wires!<br>
+              (those yellow boxes are also spiders, as we will soon see)<br>
+              Source: <a href="https://arxiv.org/pdf/2012.13966">https://arxiv.org/pdf/2012.13966</a>
+            </figcaption>
+          </figure>
+        </div>
+
+        <div class="slide">
+          <p>This fact lets us reason about quantum circuits using the ZX calculus.</p>
+        </div>
+      </section>
+
+      <section id="yanking" class="section">
+        <h2>1. Yanking</h2>
+
+        <div class="slide">
+          <p>Sometimes wires get a little disorganized. Like normal wires, only their inputs and outputs are what matter, so we can always straighten them out to make a diagram nicer.</p>
+          <figure>
+            <img src="assets/pdf-images/image-002.png" alt="Yanking rule examples.">
+          </figure>
+        </div>
+
+        <div class="exercise">
+          <p><strong>Exercise:</strong> Shake the wires to straighten them!</p>
+          <figure class="canvas">
+            <img src="assets/pdf-images/image-003.png" alt="Yanking exercise diagram.">
+          </figure>
+        </div>
+      </section>
+
+      <section id="spider-fusion" class="section">
+        <h2>2. Spider Fusion</h2>
+
+        <div class="slide">
+          <p>Spiders of the same colour can fuse into each other if they&rsquo;re connected by a plain wire. Opposite colours do not.</p>
+          <figure>
+            <img src="assets/pdf-images/image-004.png" alt="Spider fusion rule for same-colour spiders.">
+          </figure>
+          <figure>
+            <img src="assets/pdf-images/image-005.png" alt="Opposite-colour spiders do not fuse.">
+          </figure>
+        </div>
+
+        <div class="exercise">
+          <p><strong>Exercise:</strong> Simplify the following circuit using spider fusion!</p>
+          <div class="zx-exercise-stage" data-zx-exercise data-lesson-id="spider-fusion">
+            <div class="zx-goal-panel">
+              <div class="zx-goal-label">Goal:</div>
+              <figure class="canvas zx-goal-canvas">
+                <img src="assets/pdf-images/image-006.png" alt="Spider fusion exercise diagram.">
+              </figure>
+              <button class="zx-open-canvas" type="button">OK</button>
+            </div>
+            <figure class="canvas zx-canvas-embed-shell" hidden>
+              <iframe
+                data-src="zx-canvas/index.html?embed=1&amp;lesson=spider-fusion"
+                title="ZX Online Canvas"
+                class="zx-canvas-frame"
+                loading="lazy"
+              ></iframe>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section id="identity" class="section">
+        <h2>3. Identity</h2>
+
+        <div class="slide">
+          <p>When a phaseless spider only has one input and one out, you can remove it from the wire.</p>
+          <figure>
+            <img src="assets/pdf-images/image-007.png" alt="Identity removal rule.">
+          </figure>
+        </div>
+
+        <div class="exercise">
+          <p><strong>Exercise:</strong> Use identity removal to turn the following into an identity wire&hellip;</p>
+          <figure class="canvas">
+            <img src="assets/pdf-images/image-008.png" alt="Identity removal exercise diagram.">
+          </figure>
+        </div>
+      </section>
+
+      <section id="color-change" class="section">
+        <h2>4. Colour Change</h2>
+
+        <div class="slide">
+          <p>This is a Colour Change Box. It might not look like it, but it is actually made of green and red spiders as well:</p>
+          <figure>
+            <img src="assets/pdf-images/image-009.png" alt="Colour change box made from green and red spiders.">
+          </figure>
+        </div>
+
+        <div class="slide">
+          <p>You can push colour change boxes through green or red spiders to flip their colour. All the other legs get a copied box from this process:</p>
+          <figure>
+            <img src="assets/pdf-images/image-010.png" alt="Colour change box pushed through a spider.">
+          </figure>
+        </div>
+
+        <div class="exercise">
+          <p><strong>Exercise:</strong> Simplify the diagram using the colour change property:</p>
+          <figure class="canvas">
+            <img src="assets/pdf-images/image-011.png" alt="Colour change exercise diagram.">
+          </figure>
+        </div>
+
+        <div class="slide">
+          <p>Two colour change boxes on the same wire cancel each other out.</p>
+          <figure>
+            <img src="assets/pdf-images/image-012.png" alt="Two colour change boxes canceling on one wire.">
+          </figure>
+        </div>
+
+        <div class="exercise">
+          <p><strong>Exercise:</strong> Use the properties of the colour change box to simplify:</p>
+          <figure class="canvas">
+            <img src="assets/pdf-images/image-013.png" alt="Colour change box simplification exercise.">
+          </figure>
+        </div>
+      </section>
+
+      <section id="leg-chop" class="section">
+        <h2>5. Leg Chop</h2>
+
+        <div class="slide">
+          <p>When a green spider is connected to a red spider by two parallel wires, you can chop them off. (sorry, spiders).</p>
+          <figure>
+            <img src="assets/pdf-images/image-014.png" alt="Leg chop rule.">
+          </figure>
+        </div>
+
+        <div class="exercise">
+          <p><strong>Exercise:</strong> Use leg chopping to simplify the following diagram.</p>
+          <figure class="canvas">
+            <img src="assets/pdf-images/image-015.png" alt="Leg chopping exercise diagram.">
+          </figure>
+        </div>
+      </section>
+
+      <section id="copy" class="section">
+        <h2>6. Copy</h2>
+
+        <div class="slide">
+          <p>We can push blank (or phase pi) red spiders through any blank green spider in the following way. We&rsquo;re basically copying the red spider across all the wires connected to the green spider.</p>
+          <figure>
+            <img src="assets/pdf-images/image-016.png" alt="Copy rule.">
+          </figure>
+        </div>
+
+        <div class="exercise">
+          <p><strong>Exercise:</strong> Show that we can use this to simplify the following diagram.</p>
+          <figure class="canvas">
+            <img src="assets/pdf-images/image-017.png" alt="Copy exercise diagram.">
+          </figure>
+        </div>
+      </section>
+
+      <section id="square-popping" class="section">
+        <h2>7. Square Popping</h2>
+
+        <div class="slide">
+          <p>Now for one of the most useful rewrites -- square popping. Given a square of spiders in the following setup, you can simplify it to just two.</p>
+          <figure>
+            <img src="assets/pdf-images/image-018.png" alt="Square popping rule.">
+          </figure>
+        </div>
+
+        <div class="exercise">
+          <p><strong>Exercise:</strong> Let&rsquo;s use this powerful rewrite to simplify the diagram:</p>
+          <figure class="canvas">
+            <img src="assets/pdf-images/image-019.png" alt="Square popping exercise diagram.">
+          </figure>
+        </div>
+
+        <div class="slide">
+          <p>Conversely, we can use this rule to push a green spider through a red spider:</p>
+          <figure>
+            <img src="assets/pdf-images/image-020.png" alt="Using square popping to push a green spider through a red spider.">
+          </figure>
+        </div>
+
+        <div class="exercise">
+          <p><strong>Exercise:</strong> Push the green spider through the red one to simplify the following diagram. <span class="disable-note">[Disable copy]</span></p>
+          <figure class="canvas">
+            <img src="assets/pdf-images/image-021.png" alt="Push-through exercise diagram.">
+          </figure>
+        </div>
+      </section>
+
+      <section id="final-exercise" class="section">
+        <h2>8. Final Exercise</h2>
+
+        <div class="exercise">
+          <p><strong>Exercise:</strong> Prove that Square Popping lets us leg chop! <span class="disable-note">[Disable hopf]</span></p>
+          <figure class="canvas">
+            <img src="assets/pdf-images/image-022.png" alt="Final exercise diagram.">
+          </figure>
+        </div>
+      </section>
+
+      <footer class="page-controls">
+        <a href="slides.html">Slide version</a>
+      </footer>
+    </main>
+    <script src="zx-exercise.js?v=20260609c"></script>
+  </body>
+</html>

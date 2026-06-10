@@ -193,12 +193,14 @@ class GraphData extends Data<GraphData> {
 
 class NodeData extends Data<NodeData> {
   private _phase: [number, number] | undefined;
+  private _phaseLabel: string | undefined;
   private _coord: Coord;
   private _type: ZXNodeType;
 
   public constructor(data?: NodeData) {
     super(data);
     this._phase = data?._phase;
+    this._phaseLabel = data?._phaseLabel;
     this._coord = data?._coord ?? new Coord(0, 0);
     this._type = data?._type ?? ZXNodeType.Boundary;
   }
@@ -209,7 +211,8 @@ class NodeData extends Data<NodeData> {
         this._coord.equals(other._coord) &&
         this._type === other._type &&
         this._phase?.[0] === other._phase?.[0] &&
-        this._phase?.[1] === other._phase?.[1]
+        this._phase?.[1] === other._phase?.[1] &&
+        this._phaseLabel === other._phaseLabel
       );
   }
 
@@ -232,16 +235,19 @@ class NodeData extends Data<NodeData> {
     d._type = type;
     if (type !== ZXNodeType.Z && type !== ZXNodeType.X) {
       d._phase = undefined;
+      d._phaseLabel = undefined;
     }
     return d;
   }
 
-  public setPhase(phase: number | undefined): NodeData {
+  public setPhase(phase: number | undefined, label?: string): NodeData {
     const d = new NodeData(this);
     if (this._type !== ZXNodeType.Z && this._type !== ZXNodeType.X) {
       d._phase = undefined;
+      d._phaseLabel = undefined;
     } else {
-      d._phase = this.degreesToPhase(phase);  
+      d._phase = this.degreesToPhase(phase);
+      d._phaseLabel = d._phase === undefined ? undefined : label;
     }
     return d;
   }
@@ -254,6 +260,7 @@ class NodeData extends Data<NodeData> {
     }
     const d = new NodeData(this);
     d._phase = this.addPhases(this._phase, other);
+    d._phaseLabel = undefined;
     return d;
   }
 
@@ -263,6 +270,7 @@ class NodeData extends Data<NodeData> {
 
   public get phaseLabel(): string {
     if (!this._phase) return "";
+    if (this._phaseLabel !== undefined) return this._phaseLabel;
     const [p, q] = this._phase;
     const degrees = (p / q) * 180;
     return `${degrees}°`;

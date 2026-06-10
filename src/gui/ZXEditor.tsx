@@ -6,11 +6,15 @@ import Graph from "../lib/Graph";
 import StylePanel from "./StylePanel";
 import Toolbar from "./Toolbar";
 import Splitpane from "./Splitpane";
+import { initialGraphForLesson, isLessonSolved } from "../lib/Lessons";
 
+type ZXEditorProps = {
+  embedMode?: boolean;
+  lessonId?: string;
+};
 
-
-const ZXEditor = () => {
-  const [graph, setGraph] = useState<Graph>(new Graph());
+const ZXEditor = ({ embedMode = false, lessonId }: ZXEditorProps) => {
+  const [graph, setGraph] = useState<Graph>(() => initialGraphForLesson(lessonId) ?? new Graph());
   const [enabled, setEnabled] = useState<boolean>(true);
   const [tool, setTool] = useState<GraphTool>("select");
   const [currentPhase, setCurrentPhase] = useState<[number, number] | undefined>(undefined);
@@ -19,6 +23,23 @@ const ZXEditor = () => {
   const [selectedNodes, setSelectedNodes] = useState<Set<number>>(new Set());
   const [selectedEdges, setSelectedEdges] = useState<Set<number>>(new Set());
   const [showSecondPanel, setShowSecondPanel] = useState<boolean>(true);
+  const [solved, setSolved] = useState<boolean>(false);
+  const showStylePanel = !embedMode && showSecondPanel;
+
+  useEffect(() => {
+    const solvedNow = isLessonSolved(lessonId, graph);
+    if (solvedNow === solved) {
+      return;
+    }
+
+    setSolved(solvedNow);
+    if (solvedNow) {
+      window.parent?.postMessage(
+        { type: "zx-online:lesson-solved", lessonId },
+        window.location.origin
+      );
+    }
+  }, [graph, lessonId, solved]);
 
   const updateFromGui = (tikz: string) => {
     // stub
@@ -32,7 +53,7 @@ const ZXEditor = () => {
     }
   };
 
-const handleCurrentNodePhaseChanged = (phase: number | undefined) => {
+  const handleCurrentNodePhaseChanged = (phase: number | undefined) => {
     if (selectedNodes.size === 1 && graph !== undefined) {
       const [n] = selectedNodes;
       const g = graph.updateNodeData(n, d => d.setPhase(phase));
@@ -91,8 +112,8 @@ const handleCurrentNodePhaseChanged = (phase: number | undefined) => {
   };
 
   return (
-    <div style={{ height: "100%", width: "100%", overflow: "hidden" }}>
-      <Splitpane splitRatio={0.8} orientation="horizontal" showSecondPanel={showSecondPanel}>
+    <div style={{ height: "100%", width: "100%", overflow: "hidden", position: "relative" }}>
+      <Splitpane splitRatio={0.8} orientation="horizontal" showSecondPanel={showStylePanel}>
         <div
           style={{
             height: "100%",
