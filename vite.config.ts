@@ -23,7 +23,6 @@ export default defineConfig(({ mode }) => {
   } else {
     // Browser build by default
     return {
-      base: "./",
       build: {
         outDir: "dist",
         emptyOutDir: false,

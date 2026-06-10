@@ -241,7 +241,7 @@ class NodeData extends Data<NodeData> {
     if (this._type !== ZXNodeType.Z && this._type !== ZXNodeType.X) {
       d._phase = undefined;
     } else {
-      d._phase = this.degreesToPhase(phase);
+      d._phase = this.degreesToPhase(phase);  
     }
     return d;
   }

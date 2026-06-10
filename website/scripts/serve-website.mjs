@@ -4,8 +4,7 @@ import { createServer } from "node:http";
 import { dirname, extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const websiteRoot = resolve(projectRoot, "website");
+const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const port = Number(process.env.PORT ?? argumentValue("--port") ?? 4174);
 
 const mimeTypes = new Map([

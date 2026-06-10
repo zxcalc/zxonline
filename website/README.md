@@ -1,13 +1,13 @@
 From the ZX Online project root:
 
 ```sh
-npm run build:website
+node website/scripts/build-website.mjs
 ```
 
 To build and serve the site locally:
 
 ```sh
-npm run serve:website
+node website/scripts/serve-website.mjs
 ```
 
 Then open:
