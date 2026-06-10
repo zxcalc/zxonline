@@ -2,19 +2,11 @@ import { Coord, EdgeData, NodeData, ZXNodeType } from "./Data";
 import Graph from "./Graph";
 
 const SPIDER_FUSION_LESSON = "spider-fusion";
-const PI = "\u03c0";
 
-function node(
-  id: number,
-  x: number,
-  y: number,
-  type: ZXNodeType,
-  phase?: number,
-  label?: string
-): NodeData {
+function node(id: number, x: number, y: number, type: ZXNodeType, phase?: number): NodeData {
   let data = new NodeData().setId(id).setCoord(new Coord(x, y)).setType(type);
   if (phase !== undefined) {
-    data = data.setPhase(phase, label);
+    data = data.setPhase(phase);
   }
   return data;
 }
@@ -37,12 +29,12 @@ export function initialGraphForLesson(lessonId?: string): Graph | undefined {
   [
     node(0, -5.2, 2.65, ZXNodeType.Boundary),
     node(1, -5.2, 0.55, ZXNodeType.Boundary),
-    node(2, -3.55, 0.55, ZXNodeType.Z, 180, PI),
-    node(3, -2.45, 1.9, ZXNodeType.Z, 90, `${PI}/2`),
-    node(4, -1.45, 0.25, ZXNodeType.Z, -90, `-${PI}/2`),
-    node(5, -3.55, -1.55, ZXNodeType.Z, -180, `-${PI}`),
-    node(6, 0.05, 0.25, ZXNodeType.X, 180, PI),
-    node(7, 0.9, -0.9, ZXNodeType.X, -180, `-${PI}`),
+    node(2, -3.55, 0.55, ZXNodeType.Z, 180),
+    node(3, -2.45, 1.9, ZXNodeType.Z, 90),
+    node(4, -1.45, 0.25, ZXNodeType.Z, 270),
+    node(5, -3.55, -1.55, ZXNodeType.Z, 180),
+    node(6, 0.05, 0.25, ZXNodeType.X, 180),
+    node(7, 0.9, -0.9, ZXNodeType.X, 180),
   ].forEach((data) => {
     graph = graph.addNodeWithData(data);
   });
