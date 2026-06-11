@@ -8,9 +8,13 @@ import "./defaultvars.css";
 import "./gui.css";
 
 const App = () => {
+  const params = new URLSearchParams(window.location.search);
+  const embedMode = params.get("embed") === "1";
+  const lessonId = params.get("lesson") ?? undefined;
+
   return (
     <ConfigContext value={new Config()}>
-      <ZXEditor />
+      <ZXEditor embedMode={embedMode} lessonId={lessonId} />
     </ConfigContext>
   );
 };

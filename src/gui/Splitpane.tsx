@@ -100,6 +100,7 @@ const Splitpane = ({ children, splitRatio = 0.5, orientation = "horizontal", sho
         ref={separatorRef}
         style={{
           flex: "none",
+          display: showSecondPanel ? "block" : "none",
           cursor: orientation === "horizontal" ? "col-resize" : "row-resize",
           width: orientation === "horizontal" ? "4px" : "100%",
           height: orientation === "horizontal" ? "100%" : "4px",
