@@ -102,7 +102,7 @@ const GraphEditor = ({
           (e.source === n.id && e.target === draggedId)
       );
       if (!connected) continue;
-      
+
       const dx = n.coord.x - dropCoord.x;
       const dy = n.coord.y - dropCoord.y;
       if (Math.sqrt(dx * dx + dy * dy) <= FUSION_RADIUS) {
@@ -840,6 +840,13 @@ const GraphEditor = ({
         event.stopPropagation();
         return;
       }
+    }
+    // Delete / Backspace -> delete selection (or clicked edge point)
+    if (event.key === "Delete" || event.key === "Backspace") {
+      handleCommand("zxonline.gui.delete");
+      event.preventDefault();
+      event.stopPropagation();
+      return;
     }
   };
 

@@ -53,14 +53,14 @@ const handleCurrentNodePhaseChanged = (phase: number | undefined) => {
     }
   };
 
-  const handleNodeTypeChanged = (type: ZXNodeType, apply: boolean) => {
+  const handleNodeTypeChanged = (type: ZXNodeType) => {
     setCurrentNodeType(type);
-    if (apply) {
-      const g = graph.mapNodeData(d =>
-        selectedNodes.has(d.id) ? d.setType(type) : d
-      );
-      handleGraphChange(g, true);
-    }
+    // if (apply) {
+    //   const g = graph.mapNodeData(d =>
+    //     selectedNodes.has(d.id) ? d.setType(type) : d
+    //   );
+    //   handleGraphChange(g, true);
+    // }
     document.getElementById("graph-editor")?.focus();
   };
 

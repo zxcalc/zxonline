@@ -9,7 +9,7 @@ interface StylePanelProps {
   currentNodeType: ZXNodeType | undefined;
   currentPhase: [number, number] | undefined;
   currentPhaseLabel: string;
-  onNodeTypeChanged: (type: ZXNodeType, apply: boolean) => void;
+  onNodeTypeChanged: (type: ZXNodeType) => void;
   onPhaseChanged: (phase: number | undefined) => void;
   onPhaseLabelChanged: (label: string) => void;
 }
@@ -130,7 +130,7 @@ const StylePanel = ({
               title={type}
               onClick={e => {
                 e.preventDefault();
-                setNodeType(type, true);
+                setNodeType(type);
               }}
               style={{ outline: "none" }}
             >
