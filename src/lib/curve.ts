@@ -91,7 +91,7 @@ export function tangent(
 
 // compute intersection of a ray exiting the origin at "angle" with a regular polygon
 // defined by "startAngle" and "sides" with an inscribed radius of "r"
-function polygonOffset(angle: number, startAngle: number, sides: number, r: number): Coord {
+export function polygonOffset(angle: number, startAngle: number, sides: number, r: number): Coord {
   // find the angle of the nearest vertices on either side of "angle"
   const angleStep = (2 * Math.PI) / sides;
   const segment = Math.floor((angle - startAngle) / angleStep);
@@ -125,82 +125,118 @@ function polygonOffset(angle: number, startAngle: number, sides: number, r: numb
   return new Coord(t * rayDx, t * rayDy);
 }
 
-export function computeControlPoints(
-  styles: Styles,
+export function clipEndpoints(
   sourceData: NodeData,
   targetData: NodeData,
-  edgeData: EdgeData
-): [Coord[], number, boolean] {
-  let c1 = sourceData.coord;
-  let c2 = targetData.coord;
-  const dx = c2.x - c1.x;
-  const dy = c2.y - c1.y;
+  firstToward: Coord,
+  lastToward: Coord
+): [Coord, Coord] {
+  const c1 = sourceData.coord;
+  const c2 = targetData.coord;
 
-  let weight: number;
-  const looseness = edgeData.propertyFloat("looseness");
-  if (looseness !== undefined) {
-    weight = looseness / 2.5;
-  } else {
-    weight = edgeData.isSelfLoop ? 1.0 : 0.4;
-  }
+  // direction leaving the source, toward the first downstream point
+  const outAngle = Math.atan2(firstToward.y - c1.y, firstToward.x - c1.x);
+  // direction arriving at the target, from the last upstream point
+  const inAngle = Math.atan2(lastToward.y - c2.y, lastToward.x - c2.x);
 
-  // extract bend value from properties
-  const bend = edgeData.bend;
-
-  let bezier = false;
-  let inAngle: number;
-  let outAngle: number;
-
-  if (bend !== 0) {
-    // If bend is given, compute in/out angles relative to straight line
-    const bendRadians = bend * (Math.PI / 180);
-    const angle = Math.atan2(dy, dx);
-    inAngle = Math.PI + angle + bendRadians;
-    outAngle = angle - bendRadians;
-    bezier = true;
-  } else if (
-    edgeData.propertyInt("in") !== undefined &&
-    edgeData.propertyInt("out") !== undefined
-  ) {
-    // If in/out angles are given, use those directly
-    inAngle = edgeData.propertyInt("in")! * (Math.PI / 180);
-    outAngle = edgeData.propertyInt("out")! * (Math.PI / 180);
-
-    bezier = true;
-  } else {
-    // Otherwise compute angles as a straight line
-    outAngle = Math.atan2(dy, dx);
-    inAngle = Math.PI + outAngle;
-  }
-
-  const cpDist = almostZero(dx) && almostZero(dy) ? weight : Math.sqrt(dx * dx + dy * dy) * weight;
-  const cp1 = c1.shift(cpDist * Math.cos(outAngle), cpDist * Math.sin(outAngle));
-  const cp2 = c2.shift(cpDist * Math.cos(inAngle), cpDist * Math.sin(inAngle));
-
-  // Clip the wire endpoints to each node's drawn boundary. The path is
-  // computed centre-to-centre (so the angle is correct), but the visible
-  // stroke stops at the node's edge. Clip radius is the node's drawn
-  // radius: r * size in screen space == 0.2 * size in coord space.
   const sourceStyle = ZXNodeStyles[sourceData.type];
   const sourceR = 0.2 * sourceStyle.size;
+  let clippedSource: Coord;
   if (sourceStyle.shape === "rectangle") {
     const offset = polygonOffset(outAngle, Math.PI / 4, 4, sourceR);
-    c1 = c1.shift(offset.x, offset.y);
+    clippedSource = c1.shift(offset.x, offset.y);
   } else {
-    c1 = c1.shift(Math.cos(outAngle) * sourceR, Math.sin(outAngle) * sourceR);
+    clippedSource = c1.shift(Math.cos(outAngle) * sourceR, Math.sin(outAngle) * sourceR);
   }
 
   const targetStyle = ZXNodeStyles[targetData.type];
   const targetR = 0.2 * targetStyle.size;
+  let clippedTarget: Coord;
   if (targetStyle.shape === "rectangle") {
     const offset = polygonOffset(inAngle, Math.PI / 4, 4, targetR);
-    c2 = c2.shift(offset.x, offset.y);
+    clippedTarget = c2.shift(offset.x, offset.y);
   } else {
-    c2 = c2.shift(Math.cos(inAngle) * targetR, Math.sin(inAngle) * targetR);
+    clippedTarget = c2.shift(Math.cos(inAngle) * targetR, Math.sin(inAngle) * targetR);
   }
 
-  return [[c1, c2, cp1, cp2], cpDist, bezier];
+  return [clippedSource, clippedTarget];
 }
+// export function computeControlPoints(
+//   styles: Styles,
+//   sourceData: NodeData,
+//   targetData: NodeData,
+//   edgeData: EdgeData
+// ): [Coord[], number, boolean] {
+//   let c1 = sourceData.coord;
+//   let c2 = targetData.coord;
+//   const dx = c2.x - c1.x;
+//   const dy = c2.y - c1.y;
+
+//   let weight: number;
+//   const looseness = edgeData.propertyFloat("looseness");
+//   if (looseness !== undefined) {
+//     weight = looseness / 2.5;
+//   } else {
+//     weight = edgeData.isSelfLoop ? 1.0 : 0.4;
+//   }
+
+//   // extract bend value from properties
+//   const bend = edgeData.bend;
+
+//   let bezier = false;
+//   let inAngle: number;
+//   let outAngle: number;
+
+//   if (bend !== 0) {
+//     // If bend is given, compute in/out angles relative to straight line
+//     const bendRadians = bend * (Math.PI / 180);
+//     const angle = Math.atan2(dy, dx);
+//     inAngle = Math.PI + angle + bendRadians;
+//     outAngle = angle - bendRadians;
+//     bezier = true;
+//   } else if (
+//     edgeData.propertyInt("in") !== undefined &&
+//     edgeData.propertyInt("out") !== undefined
+//   ) {
+//     // If in/out angles are given, use those directly
+//     inAngle = edgeData.propertyInt("in")! * (Math.PI / 180);
+//     outAngle = edgeData.propertyInt("out")! * (Math.PI / 180);
+
+//     bezier = true;
+//   } else {
+//     // Otherwise compute angles as a straight line
+//     outAngle = Math.atan2(dy, dx);
+//     inAngle = Math.PI + outAngle;
+//   }
+
+//   const cpDist = almostZero(dx) && almostZero(dy) ? weight : Math.sqrt(dx * dx + dy * dy) * weight;
+//   const cp1 = c1.shift(cpDist * Math.cos(outAngle), cpDist * Math.sin(outAngle));
+//   const cp2 = c2.shift(cpDist * Math.cos(inAngle), cpDist * Math.sin(inAngle));
+
+//   // Clip the wire endpoints to each node's drawn boundary. The path is
+//   // computed centre-to-centre (so the angle is correct), but the visible
+//   // stroke stops at the node's edge. Clip radius is the node's drawn
+//   // radius: r * size in screen space == 0.2 * size in coord space.
+//   const sourceStyle = ZXNodeStyles[sourceData.type];
+//   const sourceR = 0.2 * sourceStyle.size;
+//   if (sourceStyle.shape === "rectangle") {
+//     const offset = polygonOffset(outAngle, Math.PI / 4, 4, sourceR);
+//     c1 = c1.shift(offset.x, offset.y);
+//   } else {
+//     c1 = c1.shift(Math.cos(outAngle) * sourceR, Math.sin(outAngle) * sourceR);
+//   }
+
+//   const targetStyle = ZXNodeStyles[targetData.type];
+//   const targetR = 0.2 * targetStyle.size;
+//   if (targetStyle.shape === "rectangle") {
+//     const offset = polygonOffset(inAngle, Math.PI / 4, 4, targetR);
+//     c2 = c2.shift(offset.x, offset.y);
+//   } else {
+//     c2 = c2.shift(Math.cos(inAngle) * targetR, Math.sin(inAngle) * targetR);
+//   }
+
+//   return [[c1, c2, cp1, cp2], cpDist, bezier];
+// }
 
 export function catmullRomToBezier(
   p0: Coord, p1: Coord, p2: Coord, p3: Coord, tension: number = 1

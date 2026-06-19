@@ -71,7 +71,6 @@ const GraphEditor = ({
 
   // refs used to pass data from edge components to the graph editor
   const clickedEdge = useRef<number | undefined>(undefined);
-  const clickedControlPoint = useRef<[number, 1 | 2] | undefined>(undefined);
   const clickedEdgePoint = useRef<[number, number] | undefined>(undefined);
   const fusionPair = useRef<{ target: number; dragged: number } | undefined>(undefined);
 
@@ -221,9 +220,7 @@ const GraphEditor = ({
 
     switch (currentTool) {
       case "select":
-        if (clickedControlPoint.current !== undefined) {
-          updateUIState({ prevGraph: graph });
-        } else if (clickedNode !== undefined) {
+        if (clickedNode !== undefined) {
           // select a node single node and/or prepare to drag nodes
           if (multiSelect) {
             if (selectedNodes.has(clickedNode)) {
@@ -335,69 +332,6 @@ const GraphEditor = ({
               updateUIState({ fusionTarget: undefined, fusionDragged: undefined });
             }
           }
-        } else if (clickedControlPoint.current !== undefined) {
-          const [edge, pt] = clickedControlPoint.current;
-          let d = graph.edge(edge)!;
-          const sourceCoord = sceneCoords.coordToScreen(graph.node(d.source)!.coord);
-          const targetCoord = sceneCoords.coordToScreen(graph.node(d.target)!.coord);
-          const dx1 = targetCoord.x - sourceCoord.x;
-          const dy1 = targetCoord.y - sourceCoord.y;
-          let dx2: number, dy2: number;
-          if (pt === 1) {
-            dx2 = p.x - sourceCoord.x;
-            dy2 = p.y - sourceCoord.y;
-          } else {
-            dx2 = p.x - targetCoord.x;
-            dy2 = p.y - targetCoord.y;
-          } 
-
-          const baseDist = Math.sqrt(dx1 * dx1 + dy1 * dy1);
-          const handleDist = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-
-          if (!d.isSelfLoop) {
-            let weight: number;
-            if (baseDist !== 0) {
-              weight = handleDist / baseDist;
-            } else {
-              weight = handleDist / sceneCoords.scale;
-            }
-
-            weight = Math.round(weight * 10) / 10;
-            const looseness = 2.5 * weight;
-            if (looseness === 1) {
-              d = d.unset("looseness");
-            } else {
-              d = d.setProperty("looseness", looseness);
-            }
-          }
-
-          // compute angle of the line connecting the node with its control point. Note we flip
-          // dy because screen coordinates are inverted in the Y axis from tikz coordinates
-          const controlAngle = (Math.atan2(-dy2, dx2) * 180) / Math.PI;
-          if (d.basicBendMode) {
-            // compute the angle of the line connecting source and target. Bend is the difference between this
-            // and the control point angle
-            const baseAngle = (Math.atan2(-dy1, dx1) * 180) / Math.PI;
-
-            let bend: number;
-            if (pt === 1) {
-              bend = baseAngle - controlAngle;
-            } else {
-              bend = controlAngle - baseAngle + 180;
-              if (bend > 180) {
-                bend -= 360;
-              }
-            }
-            d = d.setBend(Math.round(bend / 15) * 15);
-          } else {
-            if (pt === 1) {
-              d = d.setProperty("out", Math.round(controlAngle / 15) * 15);
-            } else {
-              d = d.setProperty("in", Math.round(controlAngle / 15) * 15);
-            }
-          }
-
-          updateGraph(graph.setEdgeData(edge, d), false);
         } else if (clickedEdgePoint.current !== undefined) {
           const [edgeId, pointIndex] = clickedEdgePoint.current;
           const edge = graph.edge(edgeId)!;
@@ -510,10 +444,6 @@ const GraphEditor = ({
           } else if (!uiState.prevGraph?.equals(graph)) {
             updateGraph(graph, true);
           }
-        } else if (clickedControlPoint.current !== undefined) {
-          if (!uiState.prevGraph?.equals(graph)) {
-            updateGraph(graph, true);
-          }
         }
         break;
       case "vertex":
@@ -541,7 +471,6 @@ const GraphEditor = ({
     }
 
     clickedEdge.current = undefined;
-    clickedControlPoint.current = undefined;
     clickedEdgePoint.current = undefined;
     fusionPair.current = undefined;
     updateUIState("reset");
@@ -584,6 +513,18 @@ const GraphEditor = ({
       case "zxonline.gui.copy": {
         if (selectedNodes.size !== 0) {
           window.navigator.clipboard.writeText(graph.subgraphFromNodes(selectedNodes).tikz());
+        }
+        break;
+      }
+      //// TEMP
+      case "zxonline.gui.removeIdentity": {
+        if (selectedNodes.size === 1) {
+          const [n] = selectedNodes;
+          const g = graph.removeIdentity(n);
+          if (!g.equals(graph)) {
+            updateGraph(g, true);
+            updateSelection(new Set(), new Set());
+          }
         }
         break;
       }
@@ -841,6 +782,14 @@ const GraphEditor = ({
         return;
       }
     }
+    // i -> remove identity spider (temporary trigger; shake gesture comes later) // TEMP
+    if (event.key === "i") {
+      handleCommand("zxonline.gui.removeIdentity");
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     // Delete / Backspace -> delete selection (or clicked edge point)
     if (event.key === "Delete" || event.key === "Backspace") {
       handleCommand("zxonline.gui.delete");
@@ -921,7 +870,6 @@ const GraphEditor = ({
                   updateUIState({ highlightEdge: undefined });
                 }
               }}
-              onControlPointPointerDown={i => (clickedControlPoint.current = [edgeData.id, i])}
               onEdgePointPointerDown={(pointIndex) => {
                 clickedEdge.current = edgeData.id;
                 clickedEdgePoint.current = [edgeData.id, pointIndex];

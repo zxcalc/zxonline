@@ -186,6 +186,62 @@ class Graph {
     return g;
   }
 
+  // Identity removal: a degree-2 Z/X spider with no phase is the identity on a
+  // wire. Remove it and merge its two incident edges into a single edge between
+  // its two neighbours, preserving routing points (the removed spider's
+  // position becomes a routing point, so the wire keeps its shape). No-op if the
+  // node isn't a phaseless degree-2 spider. Inverse of splitEdge.
+  public removeIdentity(nodeId: number): Graph {
+    const node = this._nodeData.get(nodeId);
+    if (node === undefined) return this;
+
+    // must be a Z or X spider with no phase
+    const isSpider = node.type === ZXNodeType.Z || node.type === ZXNodeType.X;
+    if (!isSpider || node.phase !== undefined) return this;
+
+    // collect the edges incident to this node
+    const incident = this.edges.filter(
+      e => e.source === nodeId || e.target === nodeId
+    );
+
+    // must be exactly degree 2 (two distinct edges; reject self-loops which
+    // would appear as a single edge with source===target)
+    if (incident.length !== 2) return this;
+    const [e1, e2] = incident;
+    if (e1.isSelfLoop || e2.isSelfLoop) return this;
+
+    // identify the two neighbours (the ends that aren't this node)
+    const neighbour1 = e1.source === nodeId ? e1.target : e1.source;
+    const neighbour2 = e2.source === nodeId ? e2.target : e2.source;
+
+    // Build the merged point list. We walk from neighbour1 -> removed node ->
+    // neighbour2, orienting each edge's points so they run in that direction.
+    // e1 contributes its points oriented neighbour1 -> node; then the removed
+    // node's own coord (now a routing bend); then e2's points oriented
+    // node -> neighbour2.
+    const e1PointsForward = e1.source === neighbour1; // points already run n1 -> node
+    const e2PointsForward = e2.source === nodeId; // points run node -> n2
+
+    const e1Points = e1PointsForward ? e1.points : [...e1.points].reverse();
+    const e2Points = e2PointsForward ? e2.points : [...e2.points].reverse();
+
+    const mergedPoints = [...e1Points, node.coord, ...e2Points];
+
+    // Create the merged edge, reusing e1's id, from neighbour1 to neighbour2.
+    const mergedEdge = new EdgeData()
+      .setId(e1.id)
+      .setSource(neighbour1)
+      .setTarget(neighbour2)
+      .setPoints(mergedPoints);
+
+    let g = new Graph(this);
+    g = g.removeEdges([e1.id, e2.id]);
+    g = g.removeNodes([nodeId]); // also clears any edges referencing it (none left)
+    g = g.addEdgeWithData(mergedEdge);
+
+    return g;
+  }
+
   public removeEdges(edges: Iterable<number>): Graph {
     const g = new Graph(this);
     g._edgeData = new Map(this._edgeData);
