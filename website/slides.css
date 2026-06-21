@@ -1,3 +1,22 @@
+@import url(https://fonts.googleapis.com/css?family=Quicksand:400,700,400italic,700italic);
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700);
+
+:root {
+  --zx-page-bg: linear-gradient(0deg, rgba(255, 255, 255, 1) 75%, rgb(224, 255, 227) 100%);
+  --zx-text: #222;
+  --zx-heading: #000;
+  --zx-muted: #5d6862;
+  --zx-rule: #b7d8c8;
+  --zx-accent: #0f886e;
+  --zx-accent-dark: #127c5c;
+  --zx-accent-hover: #17a183;
+  --zx-disabled-bg: #d5ddd8;
+  --zx-disabled-bg-alt: #c8d0cc;
+  --zx-disabled-border: #9ea9a4;
+  --zx-disabled-text: #65706b;
+  --zx-soft-panel: rgba(255, 255, 255, 0.72);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -9,9 +28,10 @@ html {
 body {
   height: 100%;
   margin: 0;
-  background: #f8f8f8;
-  color: #111;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  background: var(--zx-page-bg);
+  background-attachment: fixed;
+  color: var(--zx-text);
+  font-family: "Open Sans", sans-serif;
   font-size: 18px;
   line-height: 1.5;
   overflow: hidden;
@@ -29,7 +49,7 @@ body {
 
 .deck-header {
   padding-bottom: 16px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--zx-rule);
 }
 
 h1,
@@ -40,18 +60,19 @@ p {
 
 h1 {
   margin-bottom: 0;
+  color: var(--zx-accent-dark);
+  font-family: "Quicksand", "Open Sans", sans-serif;
   font-size: 32px;
+  font-weight: 700;
   line-height: 1.15;
-}
-
-.papyrus {
-  font-family: Papyrus, fantasy;
-  font-weight: normal;
 }
 
 h2 {
   margin-bottom: 18px;
+  color: var(--zx-heading);
+  font-family: "Quicksand", "Open Sans", sans-serif;
   font-size: 28px;
+  font-weight: 700;
   line-height: 1.2;
 }
 
@@ -77,7 +98,7 @@ h2 {
 }
 
 .disable-note {
-  color: #bf6b6b;
+  color: #9e4f50;
 }
 
 figure {
@@ -87,9 +108,13 @@ figure {
 
 figcaption {
   margin-top: 10px;
-  color: #222;
+  color: var(--zx-muted);
   font-size: 15px;
   text-align: center;
+}
+
+a {
+  color: var(--zx-accent-dark);
 }
 
 img {
@@ -105,8 +130,8 @@ img {
 
 .canvas {
   padding: 12px;
-  border: 1px solid #aaa;
-  background: transparent;
+  border: 1px solid var(--zx-rule);
+  background: var(--zx-soft-panel);
 }
 
 .zx-exercise-stage {
@@ -118,6 +143,7 @@ img {
   grid-template-columns: 1fr auto;
   gap: 12px;
   align-items: center;
+  padding-right: 10px;
 }
 
 .zx-goal-label {
@@ -143,10 +169,18 @@ img {
   max-height: none !important;
 }
 
-.zx-open-canvas {
+[data-zx-exercise]:not(.is-canvas-open) .zx-open-canvas {
+  display: none;
+}
+
+[data-zx-exercise].is-canvas-open .zx-open-canvas {
   grid-column: 2;
   grid-row: 1;
   justify-self: end;
+}
+
+#next-button.is-exercise-open-action {
+  animation: zx-ok-pulse 1500ms ease-in-out infinite;
 }
 
 .zx-canvas-embed-shell {
@@ -156,7 +190,8 @@ img {
   min-height: 360px;
   padding: 0;
   overflow: hidden;
-  border-radius: 16px;
+  border: 1px solid var(--zx-rule);
+  border-radius: 8px;
   background: #fff;
 }
 
@@ -174,32 +209,84 @@ img {
   gap: 12px;
   align-items: center;
   padding-top: 16px;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid var(--zx-rule);
 }
 
 .deck-controls a {
   justify-self: center;
-  color: #0645ad;
+  color: var(--zx-accent-dark);
 }
 
 button {
+  appearance: none;
+  -webkit-appearance: none;
   min-height: 40px;
-  border: 1px solid #777;
-  background: #fff;
-  color: #111;
+  border: 1px solid var(--zx-accent-dark);
+  border-radius: 0;
+  background: var(--zx-accent);
+  color: #fff;
   cursor: pointer;
-  font: inherit;
+  font: 700 16px/1.2 "Quicksand", "Open Sans", sans-serif;
   padding: 6px 14px;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    color 140ms ease;
+  -webkit-text-fill-color: #fff;
 }
 
 button:disabled {
+  border-color: var(--zx-disabled-border);
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      var(--zx-disabled-bg),
+      var(--zx-disabled-bg) 8px,
+      var(--zx-disabled-bg-alt) 8px,
+      var(--zx-disabled-bg-alt) 16px
+    );
+  color: var(--zx-disabled-text);
   cursor: not-allowed;
-  opacity: 0.45;
+  opacity: 1;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+  -webkit-text-fill-color: var(--zx-disabled-text);
 }
 
 button:hover:not(:disabled),
-button:focus {
-  background: #eee;
+button:focus-visible {
+  border-color: var(--zx-accent-hover);
+  background: var(--zx-accent-hover);
+  box-shadow: 0 0 0 3px rgba(15, 136, 110, 0.18);
+}
+
+#next-button:not(:disabled) {
+  box-shadow: 0 8px 20px rgba(15, 136, 110, 0.18);
+}
+
+.zx-confetti-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 20;
+}
+
+@keyframes zx-ok-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(15, 136, 110, 0.32);
+  }
+
+  55% {
+    box-shadow: 0 0 0 9px rgba(15, 136, 110, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #next-button.is-exercise-open-action {
+    animation: none;
+  }
 }
 
 @media (max-width: 760px) {

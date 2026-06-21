@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ZX Online Mockup</title>
-    <link rel="stylesheet" href="styles.css?v=20260609c">
+    <title>ZX Online</title>
+    <link rel="stylesheet" href="styles.css?v=20260621h">
   </head>
   <body>
     <main class="page">
       <header class="page-header">
-        <h1>ZX Online <span class="papyrus">Mockup</span></h1>
+        <h1>ZX Online</h1>
       </header>
 
       <nav class="toc" aria-label="Table of contents">
@@ -60,7 +60,7 @@
 
         <div class="exercise">
           <p><strong>Exercise:</strong> Shake the wires to straighten them!</p>
-          <figure class="canvas">
+          <figure class="canvas" data-game-slide="2">
             <img src="assets/pdf-images/image-003.png" alt="Yanking exercise diagram.">
           </figure>
         </div>
@@ -81,23 +81,9 @@
 
         <div class="exercise">
           <p><strong>Exercise:</strong> Simplify the following circuit using spider fusion!</p>
-          <div class="zx-exercise-stage" data-zx-exercise data-lesson-id="spider-fusion">
-            <div class="zx-goal-panel">
-              <div class="zx-goal-label">Goal:</div>
-              <figure class="canvas zx-goal-canvas">
-                <img src="assets/pdf-images/image-006.png" alt="Spider fusion exercise diagram.">
-              </figure>
-              <button class="zx-open-canvas" type="button">OK</button>
-            </div>
-            <figure class="canvas zx-canvas-embed-shell" hidden>
-              <iframe
-                data-src="zx-canvas/index.html?embed=1&amp;lesson=spider-fusion"
-                title="ZX Online Canvas"
-                class="zx-canvas-frame"
-                loading="lazy"
-              ></iframe>
-            </figure>
-          </div>
+          <figure class="canvas" data-game-slide="4">
+            <img src="assets/pdf-images/image-006.png" alt="Spider fusion exercise diagram.">
+          </figure>
         </div>
       </section>
 
@@ -113,7 +99,7 @@
 
         <div class="exercise">
           <p><strong>Exercise:</strong> Use identity removal to turn the following into an identity wire&hellip;</p>
-          <figure class="canvas">
+          <figure class="canvas" data-game-slide="6">
             <img src="assets/pdf-images/image-008.png" alt="Identity removal exercise diagram.">
           </figure>
         </div>
@@ -138,7 +124,7 @@
 
         <div class="exercise">
           <p><strong>Exercise:</strong> Simplify the diagram using the colour change property:</p>
-          <figure class="canvas">
+          <figure class="canvas" data-game-slide="9">
             <img src="assets/pdf-images/image-011.png" alt="Colour change exercise diagram.">
           </figure>
         </div>
@@ -152,7 +138,7 @@
 
         <div class="exercise">
           <p><strong>Exercise:</strong> Use the properties of the colour change box to simplify:</p>
-          <figure class="canvas">
+          <figure class="canvas" data-game-slide="11">
             <img src="assets/pdf-images/image-013.png" alt="Colour change box simplification exercise.">
           </figure>
         </div>
@@ -170,7 +156,7 @@
 
         <div class="exercise">
           <p><strong>Exercise:</strong> Use leg chopping to simplify the following diagram.</p>
-          <figure class="canvas">
+          <figure class="canvas" data-game-slide="13">
             <img src="assets/pdf-images/image-015.png" alt="Leg chopping exercise diagram.">
           </figure>
         </div>
@@ -188,7 +174,7 @@
 
         <div class="exercise">
           <p><strong>Exercise:</strong> Show that we can use this to simplify the following diagram.</p>
-          <figure class="canvas">
+          <figure class="canvas" data-game-slide="15">
             <img src="assets/pdf-images/image-017.png" alt="Copy exercise diagram.">
           </figure>
         </div>
@@ -206,7 +192,7 @@
 
         <div class="exercise">
           <p><strong>Exercise:</strong> Let&rsquo;s use this powerful rewrite to simplify the diagram:</p>
-          <figure class="canvas">
+          <figure class="canvas" data-game-slide="17">
             <img src="assets/pdf-images/image-019.png" alt="Square popping exercise diagram.">
           </figure>
         </div>
@@ -219,8 +205,8 @@
         </div>
 
         <div class="exercise">
-          <p><strong>Exercise:</strong> Push the green spider through the red one to simplify the following diagram. <span class="disable-note">[Disable copy]</span></p>
-          <figure class="canvas">
+          <p><strong>Exercise:</strong> Push the green spider through the red one to simplify the following diagram. <span class="disable-note">[Without the copy rule]</span></p>
+          <figure class="canvas" data-game-slide="19">
             <img src="assets/pdf-images/image-021.png" alt="Push-through exercise diagram.">
           </figure>
         </div>
@@ -230,17 +216,22 @@
         <h2>8. Final Exercise</h2>
 
         <div class="exercise">
-          <p><strong>Exercise:</strong> Prove that Square Popping lets us leg chop! <span class="disable-note">[Disable hopf]</span></p>
-          <figure class="canvas">
+          <p><strong>Exercise:</strong> Prove that Square Popping lets us leg chop! <span class="disable-note">[Without the hopf rule]</span></p>
+          <figure class="canvas" data-game-slide="20">
             <img src="assets/pdf-images/image-022.png" alt="Final exercise diagram.">
           </figure>
         </div>
       </section>
 
       <footer class="page-controls">
-        <a href="slides.html">Slide version</a>
+        <a href="slides.html">Back to Game</a>
+        <div class="overview-footer-controls" aria-label="Progress controls">
+          <span>ZX Online v1</span>
+          <button type="button" data-progress-action="unlock-all">Unlock all</button>
+          <button type="button" data-progress-action="start-over">Start over</button>
+        </div>
       </footer>
     </main>
-    <script src="zx-exercise.js?v=20260609c"></script>
+    <script src="zx-exercise.js?v=20260621h"></script>
   </body>
 </html>
