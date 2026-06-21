@@ -141,6 +141,10 @@ function activeExerciseNeedsOpening() {
   return Boolean(exercise?.matches(":not(.is-canvas-open):not(.is-resolved)"));
 }
 
+function activeSlideIsFinal() {
+  return activeIndex === slides.length - 1;
+}
+
 function sizeImagesToSlide() {
   const activeSlide = slides[activeIndex];
   const images = Array.from(activeSlide.querySelectorAll("img"));
@@ -203,15 +207,17 @@ function renderSlide(options = {}) {
 
   const wasNextDisabled = nextButton.disabled;
   const nextOpensExercise = activeExerciseNeedsOpening();
-  const nextDisabled = !nextOpensExercise && (activeIndex === slides.length - 1 || activeSlideBlocksNext());
+  const nextFinishesDeck = activeSlideIsFinal() && !nextOpensExercise && !activeSlideBlocksNext();
+  const nextDisabled = !nextOpensExercise && !nextFinishesDeck && activeSlideBlocksNext();
 
   backButton.disabled = activeIndex === 0;
   nextButton.disabled = nextDisabled;
-  nextButton.textContent = nextOpensExercise ? "OK" : "Next";
+  nextButton.textContent = nextOpensExercise ? "OK" : nextFinishesDeck ? "Done!" : "Next";
   nextButton.classList.toggle("is-exercise-open-action", nextOpensExercise);
+  nextButton.classList.toggle("is-deck-done-action", nextFinishesDeck);
   nextButton.setAttribute(
     "aria-label",
-    nextOpensExercise ? "Open exercise canvas" : "Next slide"
+    nextOpensExercise ? "Open exercise canvas" : nextFinishesDeck ? "Return to overview" : "Next slide"
   );
 
   if (options.celebrateUnlock && wasNextDisabled && !nextDisabled && !nextOpensExercise) {
@@ -227,6 +233,11 @@ backButton.addEventListener("click", () => {
 });
 
 nextButton.addEventListener("click", () => {
+  if (nextButton.classList.contains("is-deck-done-action")) {
+    window.location.href = "index.html";
+    return;
+  }
+
   if (nextButton.classList.contains("is-exercise-open-action")) {
     const exercise = activeExercise();
     exercise?.dispatchEvent(new CustomEvent("zx-exercise-open-request"));

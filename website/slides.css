@@ -113,6 +113,31 @@ figcaption {
   text-align: center;
 }
 
+.intro-caption {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 40px;
+  justify-items: center;
+}
+
+.intro-caption-left,
+.intro-caption-right,
+.intro-caption-centered {
+  display: block;
+}
+
+.intro-caption-left {
+  grid-column: 1;
+}
+
+.intro-caption-right {
+  grid-column: 2;
+}
+
+.intro-caption-centered {
+  grid-column: 1 / -1;
+}
+
 a {
   color: var(--zx-accent-dark);
 }
