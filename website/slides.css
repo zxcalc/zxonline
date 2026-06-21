@@ -238,8 +238,17 @@ img {
 }
 
 .deck-controls a {
+  grid-column: 2;
   justify-self: center;
   color: var(--zx-accent-dark);
+}
+
+#back-button {
+  grid-column: 1;
+}
+
+#next-button {
+  grid-column: 3;
 }
 
 button {

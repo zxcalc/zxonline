@@ -171,12 +171,12 @@ img {
   background: var(--zx-soft-panel);
 }
 
-.canvas.is-game-link {
+.is-game-link {
   cursor: pointer;
 }
 
-.canvas.is-game-link:hover,
-.canvas.is-game-link:focus-visible {
+.is-game-link:hover,
+.is-game-link:focus-visible {
   border-color: var(--zx-accent-hover);
   box-shadow: 0 0 0 3px rgba(15, 136, 110, 0.16);
   outline: none;

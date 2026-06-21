@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ZX Online</title>
-    <link rel="stylesheet" href="styles.css?v=20260621h">
+    <link rel="stylesheet" href="styles.css?v=20260621i">
   </head>
   <body>
     <main class="page">
@@ -32,7 +32,7 @@
 
         <div class="slide">
           <p>All Quantum circuits are made of spiders and wires&hellip;</p>
-          <figure>
+          <figure data-game-slide="0">
             <img src="assets/pdf-images/intro-circuit.png" alt="Quantum circuit written with unitary boxes and the same circuit written with spiders and wires.">
             <figcaption>
               Left: Quantum circuit written with unitary boxes<br>
@@ -53,7 +53,7 @@
 
         <div class="slide">
           <p>Sometimes wires get a little disorganized. Like normal wires, only their inputs and outputs are what matter, so we can always straighten them out to make a diagram nicer.</p>
-          <figure>
+          <figure data-game-slide="1">
             <img src="assets/pdf-images/image-002.png" alt="Yanking rule examples.">
           </figure>
         </div>
@@ -71,10 +71,10 @@
 
         <div class="slide">
           <p>Spiders of the same colour can fuse into each other if they&rsquo;re connected by a plain wire. Opposite colours do not.</p>
-          <figure>
+          <figure data-game-slide="3">
             <img src="assets/pdf-images/image-004.png" alt="Spider fusion rule for same-colour spiders.">
           </figure>
-          <figure>
+          <figure data-game-slide="3">
             <img src="assets/pdf-images/image-005.png" alt="Opposite-colour spiders do not fuse.">
           </figure>
         </div>
@@ -92,7 +92,7 @@
 
         <div class="slide">
           <p>When a phaseless spider only has one input and one out, you can remove it from the wire.</p>
-          <figure>
+          <figure data-game-slide="5">
             <img src="assets/pdf-images/image-007.png" alt="Identity removal rule.">
           </figure>
         </div>
@@ -110,14 +110,14 @@
 
         <div class="slide">
           <p>This is a Colour Change Box. It might not look like it, but it is actually made of green and red spiders as well:</p>
-          <figure>
+          <figure data-game-slide="7">
             <img src="assets/pdf-images/image-009.png" alt="Colour change box made from green and red spiders.">
           </figure>
         </div>
 
         <div class="slide">
           <p>You can push colour change boxes through green or red spiders to flip their colour. All the other legs get a copied box from this process:</p>
-          <figure>
+          <figure data-game-slide="8">
             <img src="assets/pdf-images/image-010.png" alt="Colour change box pushed through a spider.">
           </figure>
         </div>
@@ -131,7 +131,7 @@
 
         <div class="slide">
           <p>Two colour change boxes on the same wire cancel each other out.</p>
-          <figure>
+          <figure data-game-slide="10">
             <img src="assets/pdf-images/image-012.png" alt="Two colour change boxes canceling on one wire.">
           </figure>
         </div>
@@ -149,7 +149,7 @@
 
         <div class="slide">
           <p>When a green spider is connected to a red spider by two parallel wires, you can chop them off. (sorry, spiders).</p>
-          <figure>
+          <figure data-game-slide="12">
             <img src="assets/pdf-images/image-014.png" alt="Leg chop rule.">
           </figure>
         </div>
@@ -167,7 +167,7 @@
 
         <div class="slide">
           <p>We can push blank (or phase pi) red spiders through any blank green spider in the following way. We&rsquo;re basically copying the red spider across all the wires connected to the green spider.</p>
-          <figure>
+          <figure data-game-slide="14">
             <img src="assets/pdf-images/image-016.png" alt="Copy rule.">
           </figure>
         </div>
@@ -185,7 +185,7 @@
 
         <div class="slide">
           <p>Now for one of the most useful rewrites -- square popping. Given a square of spiders in the following setup, you can simplify it to just two.</p>
-          <figure>
+          <figure data-game-slide="16">
             <img src="assets/pdf-images/image-018.png" alt="Square popping rule.">
           </figure>
         </div>
@@ -199,7 +199,7 @@
 
         <div class="slide">
           <p>Conversely, we can use this rule to push a green spider through a red spider:</p>
-          <figure>
+          <figure data-game-slide="18">
             <img src="assets/pdf-images/image-020.png" alt="Using square popping to push a green spider through a red spider.">
           </figure>
         </div>

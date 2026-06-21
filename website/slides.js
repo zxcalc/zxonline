@@ -4,7 +4,16 @@ const header = document.querySelector(".deck-header");
 const controls = document.querySelector(".deck-controls");
 const backButton = document.querySelector("#back-button");
 const nextButton = document.querySelector("#next-button");
-const confettiColors = ["#0f886e", "#17a183", "#98bdef", "#e0ffe3", "#222222"];
+const confettiColors = [
+  "#0f886e",
+  "#17a183",
+  "#ef4444",
+  "#facc15",
+  "#38bdf8",
+  "#8b5cf6",
+  "#f97316",
+  "#ec4899",
+];
 const slideProgressKey = "zx-online:max-unlocked-slide";
 
 let activeIndex = initialActiveIndex();
