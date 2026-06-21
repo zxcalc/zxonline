@@ -210,6 +210,7 @@ function renderSlide(options = {}) {
   const nextFinishesDeck = activeSlideIsFinal() && !nextOpensExercise && !activeSlideBlocksNext();
   const nextDisabled = !nextOpensExercise && !nextFinishesDeck && activeSlideBlocksNext();
 
+  backButton.hidden = activeIndex === 0;
   backButton.disabled = activeIndex === 0;
   nextButton.disabled = nextDisabled;
   nextButton.textContent = nextOpensExercise ? "OK" : nextFinishesDeck ? "Done!" : "Next";
