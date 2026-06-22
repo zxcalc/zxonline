@@ -1,6 +1,16 @@
 (function () {
   const SHOW_GOAL_TEXT = "See Goal";
   const HIDE_GOAL_TEXT = "Hide Goal";
+  const SLIDE_PROGRESS_KEY = "zx-online:max-unlocked-slide";
+
+  function readMaxUnlockedSlide() {
+    const value = Number(window.localStorage.getItem(SLIDE_PROGRESS_KEY));
+    return Number.isFinite(value) && value >= 0 ? value : 0;
+  }
+
+  function writeMaxUnlockedSlide(index) {
+    window.localStorage.setItem(SLIDE_PROGRESS_KEY, String(Math.max(0, index)));
+  }
 
   function setGoalVisible(root, visible) {
     const goalLabel = root.querySelector(".zx-goal-label");
@@ -50,6 +60,13 @@
 
   document.querySelectorAll("[data-zx-exercise]").forEach((root) => {
     const openButton = root.querySelector(".zx-open-canvas");
+
+    root.addEventListener("zx-exercise-open-request", () => {
+      if (!root.classList.contains("is-canvas-open")) {
+        openExercise(root);
+      }
+    });
+
     openButton?.addEventListener("click", () => {
       if (root.classList.contains("is-canvas-open")) {
         const goalCanvas = root.querySelector(".zx-goal-canvas");
@@ -58,6 +75,72 @@
       }
 
       openExercise(root);
+    });
+  });
+
+  const gameSlideTargets = Array.from(document.querySelectorAll("[data-game-slide]"));
+
+  function maxGameSlide() {
+    return gameSlideTargets.reduce((maxSlide, target) => {
+      const gameSlide = Number(target.dataset.gameSlide);
+      return Number.isInteger(gameSlide) ? Math.max(maxSlide, gameSlide) : maxSlide;
+    }, 0);
+  }
+
+  function syncGameSlideLinks() {
+    const maxUnlockedSlide = readMaxUnlockedSlide();
+
+    gameSlideTargets.forEach((target) => {
+      const gameSlide = Number(target.dataset.gameSlide);
+      const isUnlocked = Number.isInteger(gameSlide) && gameSlide <= maxUnlockedSlide;
+
+      target.classList.toggle("is-game-link", isUnlocked);
+
+      if (isUnlocked) {
+        target.setAttribute("role", "link");
+        target.setAttribute("tabindex", "0");
+        target.setAttribute("aria-label", "Open this exercise in the game");
+      } else {
+        target.removeAttribute("role");
+        target.removeAttribute("tabindex");
+        target.removeAttribute("aria-label");
+      }
+    });
+  }
+
+  gameSlideTargets.forEach((target) => {
+    const gameSlide = Number(target.dataset.gameSlide);
+
+    function openGameSlide() {
+      if (!Number.isInteger(gameSlide) || gameSlide > readMaxUnlockedSlide()) {
+        return;
+      }
+
+      window.location.href = `slides.html#slide-${gameSlide}`;
+    }
+
+    target.addEventListener("click", openGameSlide);
+    target.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+
+      event.preventDefault();
+      openGameSlide();
+    });
+  });
+
+  syncGameSlideLinks();
+
+  document.querySelectorAll("[data-progress-action]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.progressAction === "unlock-all") {
+        writeMaxUnlockedSlide(maxGameSlide());
+      } else if (button.dataset.progressAction === "start-over") {
+        writeMaxUnlockedSlide(0);
+      }
+
+      syncGameSlideLinks();
     });
   });
 
