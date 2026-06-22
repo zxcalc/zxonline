@@ -55,26 +55,22 @@ export function initialGraphForLesson(lessonId?: string): Graph | undefined {
   } else if (lessonId === IDENTITY_REMOVAL_LESSON) {
     let graph = new Graph();
 
-    // Currently: boundary — id(Z,0) — Z(90) — id(Z,0) — X(180) — id(X,0) — boundary
+    // Currently: boundary — id(Z,180) — id(X,0) — id(Z,180) — boundary
     [
       node(0, -5.0, 1.0, ZXNodeType.Boundary),
       node(1, 3.0, 1.0, ZXNodeType.Boundary),
-      node(2, -3.0, 1.0, ZXNodeType.Z, 90),
-      node(3, -4.0, 1.0, ZXNodeType.Z, 0),   // identity
-      node(4, -1.0, 1.0, ZXNodeType.Z, 0),   // identity
-      node(5, 1.0, 1.0, ZXNodeType.X, 180),
-      node(6, 2.0, 1.0, ZXNodeType.X, 0),    // identity
+      node(2, -3.0, 1.0, ZXNodeType.Z, 180),  
+      node(3, 1.0, 1.0, ZXNodeType.Z, 180),
+      node(4, -1.0, 2.0, ZXNodeType.X, 0),   
     ].forEach((data) => {
       graph = graph.addNodeWithData(data);
     });
 
     [
-      edge(0, 0, 3),
-      edge(1, 3, 2),
-      edge(2, 2, 4),
-      edge(3, 4, 5),
-      edge(4, 5, 6),
-      edge(5, 6, 1),
+      edge(0, 0, 2),
+      edge(1, 2, 4),
+      edge(2, 4, 3),
+      edge(3, 3, 1),
     ].forEach((data) => {
       graph = graph.addEdgeWithData(data);
     });
@@ -132,42 +128,29 @@ export function isLessonSolved(lessonId: string | undefined, graph: Graph): bool
     const xNodes = graph.nodes.filter((d) => d.type === ZXNodeType.X);
     const boundaries = graph.nodes.filter((d) => d.type === ZXNodeType.Boundary);
 
-    // Expected solved structure: boundary — Z(90) — X(180) — boundary
+    // Expected solved structure: boundary — — boundary
     if (
-      graph.numNodes !== 4 ||
-      graph.numEdges !== 3 ||
-      zNodes.length !== 1 ||
-      xNodes.length !== 1 ||
+      graph.numNodes !== 2 ||
+      graph.numEdges !== 1 ||
+      zNodes.length !== 0 ||
+      xNodes.length !== 0 ||
       boundaries.length !== 2
     ) {
       return false;
     }
 
-    const zId = zNodes[0].id;
-    const xId = xNodes[0].id;
+
     const boundaryIds = new Set(boundaries.map((b) => b.id));
-    let boundaryToZ = 0;
-    let boundaryToX = 0;
-    let zToX = 0;
+    let boundaryToB = 0;
 
     for (const e of graph.edges) {
-      const zx =
-        (e.source === zId && e.target === xId) ||
-        (e.source === xId && e.target === zId);
-      const bz =
-        (boundaryIds.has(e.source) && e.target === zId) ||
-        (boundaryIds.has(e.target) && e.source === zId);
-      const bx =
-        (boundaryIds.has(e.source) && e.target === xId) ||
-        (boundaryIds.has(e.target) && e.source === xId);
-
-      if (zx) zToX += 1;
-      else if (bz) boundaryToZ += 1;
-      else if (bx) boundaryToX += 1;
+      const bb =
+        (boundaryIds.has(e.source) && boundaryIds.has(e.target));
+      if (bb) boundaryToB += 1;
       else return false;
     }
 
-    return boundaryToZ === 1 && boundaryToX === 1 && zToX === 1;
+    return boundaryToB === 1;
   }
 
   return false;
