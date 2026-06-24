@@ -3,6 +3,7 @@ import Graph from "./Graph";
 
 const SPIDER_FUSION_LESSON = "spider-fusion";
 const IDENTITY_REMOVAL_LESSON = "identity-removal";
+const YANKING_LESSON = "yanking";
 
 function node(id: number, x: number, y: number, type: ZXNodeType, phase?: number): NodeData {
   let data = new NodeData().setId(id).setCoord(new Coord(x, y)).setType(type);
@@ -20,8 +21,42 @@ function edge(id: number, source: number, target: number, bend?: number): EdgeDa
   return data;
 }
 
+function bentEdge(id: number, source: number, target: number, points: [number, number][]): EdgeData {
+  return new EdgeData()
+    .setId(id)
+    .setSource(source)
+    .setTarget(target)
+    .setPoints(points.map(([x, y]) => new Coord(x, y)));
+}
+
 export function initialGraphForLesson(lessonId?: string): Graph | undefined {
-  if (lessonId === SPIDER_FUSION_LESSON) {
+  if (lessonId === YANKING_LESSON) {
+    let graph = new Graph();
+
+    [
+      node(0, -4.0, 2.0, ZXNodeType.Boundary),
+      node(1, -4.0, -2.0, ZXNodeType.Boundary),
+      node(2, -2.0, 2.0, ZXNodeType.Boundary),
+      node(3, -2.0, -2.0, ZXNodeType.Boundary),
+      node(4, 0.0, 2.0, ZXNodeType.Boundary),
+      node(5, 0.0, -2.0, ZXNodeType.Boundary),
+    ].forEach((data) => {
+      graph = graph.addNodeWithData(data);
+    });
+
+    // Two wires, each bent with routing points the learner shakes out.
+    graph = graph.addEdgeWithData(
+      bentEdge(0, 0, 1, [[-2.0,1.2],[-1.6, 0.0],[-2.0,-1.2]]) // bow
+    );
+    graph = graph.addEdgeWithData(
+      bentEdge(1, 2, 3, [[0.0, 0.0]])              // single bow
+    );
+    graph = graph.addEdgeWithData(
+      bentEdge(2, 4, 5, [[-2.2, 0.0]])             // single bow
+    );
+
+    return graph;
+  } else if (lessonId === SPIDER_FUSION_LESSON) {
     let graph = new Graph();
     [
       node(0, -5.2, 2.65, ZXNodeType.Boundary),
@@ -76,11 +111,17 @@ export function initialGraphForLesson(lessonId?: string): Graph | undefined {
     });
 
     return graph;
-  }
+  } 
 }
 
 export function isLessonSolved(lessonId: string | undefined, graph: Graph): boolean {
-  if (lessonId === SPIDER_FUSION_LESSON) {
+
+  if (lessonId === YANKING_LESSON) {
+    // Solved when the wires are all straight (no routing points) and the
+    // diagram is intact (didn't just delete everything).
+    if (graph.numEdges !== 3 || graph.numNodes !== 6) return false;
+    return graph.edges.every((e) => e.points.length === 0);
+  } else if (lessonId === SPIDER_FUSION_LESSON) {
     const zNodes = graph.nodes.filter((data) => data.type === ZXNodeType.Z);
     const xNodes = graph.nodes.filter((data) => data.type === ZXNodeType.X);
     const boundaries = graph.nodes.filter((data) => data.type === ZXNodeType.Boundary);
@@ -155,6 +196,7 @@ export function isLessonSolved(lessonId: string | undefined, graph: Graph): bool
 
   return false;
 }
+
 function isIdentitySpider(graph: Graph, data: NodeData): boolean {
   const isSpider = data.type === ZXNodeType.Z || data.type === ZXNodeType.X;
   if (!isSpider || data.phase !== undefined) {
