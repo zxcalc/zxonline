@@ -11,6 +11,7 @@ import { Coord, EdgeData, NodeData} from "../lib/Data";
 import { shortenLine } from "../lib/curve";
 import { parseTikzPicture } from "../lib/TikzParser";
 import ConfigContext from "./ConfigContext";
+import { createShakeDetector } from "../lib/shakeDetector";
 
 export type GraphTool = "select" | "vertex" | "edge";
 
@@ -73,6 +74,7 @@ const GraphEditor = ({
   const clickedEdge = useRef<number | undefined>(undefined);
   const clickedEdgePoint = useRef<[number, number] | undefined>(undefined);
   const fusionPair = useRef<{ target: number; dragged: number } | undefined>(undefined);
+  const shakeDetector = useRef(createShakeDetector());
 
   // edge selection is calculated from selected nodes ?? Unsure of necessity
 
@@ -286,6 +288,21 @@ const GraphEditor = ({
     event.preventDefault();
     if (!enabled) {
       return;
+    }
+
+    // Shake-to-straighten (yank): bare pointer motion with a single edge
+    // selected. Detect a fast back-and-forth and straighten that edge.
+    if (selectedEdges.size === 1) {
+      const [edgeId] = selectedEdges;
+      const screenP = mousePositionToCoord(event);
+      if (shakeDetector.current.sample(screenP.x, screenP.y, performance.now())) {
+        const g = graph.straightenEdge(edgeId);
+        if (!g.equals(graph)) {
+          updateGraph(g, true);
+        }
+      }
+    } else {
+      shakeDetector.current.reset();
     }
 
     if (uiState.mouseDownPos === undefined || !enabled) {

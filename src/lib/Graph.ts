@@ -1,5 +1,6 @@
 import { NodeData, EdgeData, GraphData, mapEquals, Coord , ZXNodeType } from "./Data";
 import { moveForward, moveBackward, moveToFront, moveToBack } from "./util";
+import { distToSegment } from "./geometry";
 
 class Graph {
   private _graphData: GraphData = new GraphData();
@@ -186,6 +187,31 @@ class Graph {
     return g;
   }
 
+  // Yank: straighten an edge by removing all its routing points. Pure geometry —
+  // connectivity is unchanged. Embodies "only a wire's endpoints matter".
+  public straightenEdge(edgeId: number): Graph {
+    const e = this._edgeData.get(edgeId);
+    if (e === undefined || e.points.length === 0) return this;
+    return this.updateEdgeData(edgeId, d => d.setPoints([]));
+  }
+
+  // True if coord c (graph space) lies within `threshold` of edge `edgeId`'s
+  // polyline (source → routing points → target). Used by shake-to-straighten.
+  public isCoordNearEdge(edgeId: number, c: Coord, threshold: number): boolean {
+    const e = this._edgeData.get(edgeId);
+    if (e === undefined) return false;
+    const src = this._nodeData.get(e.source);
+    const tgt = this._nodeData.get(e.target);
+    if (src === undefined || tgt === undefined) return false;
+
+    const chain = [src.coord, ...e.points, tgt.coord];
+    for (let i = 0; i < chain.length - 1; i++) {
+      if (distToSegment(c, chain[i], chain[i + 1]) <= threshold) {
+        return true;
+      }
+    }
+    return false;
+  }
   // Identity removal: a degree-2 Z/X spider with no phase is the identity on a
   // wire. Remove it and merge its two incident edges into a single edge between
   // its two neighbours, preserving routing points (the removed spider's
@@ -350,6 +376,7 @@ class Graph {
 
   return graph;
 }
+
 
   // Fuse the absorbed spider into the survivor spider. The survivor keeps
   // its id and position; its phase gains the absorbed spider's phase. Wires
