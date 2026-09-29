@@ -1,6 +1,4 @@
-@import url(https://fonts.googleapis.com/css?family=Quicksand:400,700,400italic,700italic);
-@import url(https://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700);
-
+@import url("assets/fonts/fonts.css");
 :root {
   --zx-page-bg: linear-gradient(0deg, rgba(255, 255, 255, 1) 75%, rgb(224, 255, 227) 100%);
   --zx-text: #222;
@@ -211,8 +209,8 @@ img {
 .zx-canvas-embed-shell {
   position: relative;
   width: 100%;
-  height: min(62vh, 560px);
-  min-height: 360px;
+  height: var(--exercise-canvas-height, min(62vh, 560px));
+  min-height: 220px;
   padding: 0;
   overflow: hidden;
   border: 1px solid var(--zx-rule);
@@ -350,8 +348,8 @@ button:focus-visible {
   }
 
   .zx-canvas-embed-shell {
-    height: 54vh;
-    min-height: 320px;
+    height: var(--exercise-canvas-height, 54vh);
+    min-height: 220px;
   }
 
   .deck-controls {

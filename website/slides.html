@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ZX Online - Slides</title>
     <link rel="stylesheet" href="slides.css?v=20260621k">
+    <link rel="stylesheet" href="lesson-additions.css">
+    <link rel="stylesheet" href="lesson-diagrams.css">
   </head>
   <body>
     <main class="deck" aria-live="polite">
       <header class="deck-header">
         <h1>ZX Online</h1>
+        <nav class="site-nav" aria-label="Main navigation"><a href="index.html">Overview</a><a href="slides.html">Learn</a><a href="playground.html">Playground</a></nav>
       </header>
 
       <section class="slide is-active" data-title="0. General Introduction">
@@ -31,7 +34,7 @@
         <h2>1. Yanking</h2>
         <p>Sometimes wires get a little disorganized. Like normal wires, only their inputs and outputs are what matter, so we can always straighten them out to make a diagram nicer.</p>
         <figure>
-          <img src="assets/pdf-images-transparent/image-002.png" alt="Yanking rule examples.">
+          <div class="lesson-art" data-lesson-art="image-002" data-art-label="Yanking rule examples."></div>
         </figure>
       </section>
 
@@ -42,7 +45,7 @@
           <div class="zx-goal-panel">
             <div class="zx-goal-label">Goal:</div>
             <figure class="canvas zx-goal-canvas">
-              <img src="assets/pdf-images-transparent/image-003.png" alt="Yanking exercise diagram.">
+              <div class="lesson-art" data-lesson-art="image-003" data-art-label="Yanking exercise diagram."></div>
             </figure>
             <button class="zx-open-canvas" type="button">OK</button>
           </div>
@@ -60,12 +63,14 @@
       <section class="slide" data-title="2. Spider Fusion">
         <h2>2. Spider Fusion</h2>
         <p>Spiders of the same colour can fuse into each other if they&rsquo;re connected by a plain wire. Opposite colours do not.</p>
+        <div class="fusion-art-row">
         <figure>
-          <img src="assets/pdf-images-transparent/image-004.png" alt="Spider fusion rule for same-colour spiders.">
+          <div class="lesson-art" data-lesson-art="image-004" data-art-label="Spider fusion rule for same-colour spiders."></div>
         </figure>
         <figure>
-          <img src="assets/pdf-images-transparent/image-005.png" alt="Opposite-colour spiders do not fuse.">
+          <div class="lesson-art" data-lesson-art="image-005" data-art-label="Opposite-colour spiders do not fuse."></div>
         </figure>
+              </div>
       </section>
 
       <section class="slide exercise" data-title="Exercise: Spider Fusion">
@@ -75,7 +80,7 @@
           <div class="zx-goal-panel">
             <div class="zx-goal-label">Goal:</div>
             <figure class="canvas zx-goal-canvas">
-              <img src="assets/pdf-images-transparent/image-006.png" alt="Spider fusion exercise diagram.">
+              <div class="lesson-art" data-lesson-art="image-006" data-art-label="Spider fusion exercise diagram."></div>
             </figure>
             <button class="zx-open-canvas" type="button">OK</button>
           </div>
@@ -94,7 +99,7 @@
         <h2>3. Identity</h2>
         <p>When a phaseless spider only has one input and one out, you can remove it from the wire.</p>
         <figure>
-          <img src="assets/pdf-images-transparent/image-007.png" alt="Identity removal rule.">
+          <div class="lesson-art" data-lesson-art="image-007" data-art-label="Identity removal rule."></div>
         </figure>
       </section>
 
@@ -105,7 +110,7 @@
           <div class="zx-goal-panel">
             <div class="zx-goal-label">Goal:</div>
             <figure class="canvas zx-goal-canvas">
-              <img src="assets/pdf-images-transparent/image-008.png" alt="Identity removal exercise diagram.">
+              <div class="lesson-art" data-lesson-art="image-008" data-art-label="Identity removal exercise diagram."></div>
             </figure>
             <button class="zx-open-canvas" type="button">OK</button>
           </div>
@@ -124,7 +129,7 @@
         <h2>4. Colour Change</h2>
         <p>This is a Colour Change Box. It might not look like it, but it is actually made of green and red spiders as well:</p>
         <figure>
-          <img src="assets/pdf-images-transparent/image-009.png" alt="Colour change box made from green and red spiders.">
+          <div class="lesson-art" data-lesson-art="image-009" data-art-label="Colour change box made from green and red spiders."></div>
         </figure>
       </section>
 
@@ -132,104 +137,110 @@
         <h2>4. Colour Change</h2>
         <p>You can push colour change boxes through green or red spiders to flip their colour. All the other legs get a copied box from this process:</p>
         <figure>
-          <img src="assets/pdf-images-transparent/image-010.png" alt="Colour change box pushed through a spider.">
+          <div class="lesson-art" data-lesson-art="image-010" data-art-label="Colour change box pushed through a spider."></div>
         </figure>
       </section>
 
       <section class="slide exercise" data-title="Exercise: Colour Change">
         <h2>Exercise</h2>
         <p>Simplify the diagram using the colour change property:</p>
-        <figure class="canvas">
-          <img src="assets/pdf-images-transparent/image-011.png" alt="Colour change exercise diagram.">
-        </figure>
+        <figure class="canvas"><div class="lesson-art" data-lesson-art="image-011" data-art-label="Colour change exercise diagram."></div></figure>
       </section>
 
       <section class="slide" data-title="4. Colour Change">
         <h2>4. Colour Change</h2>
         <p>Two colour change boxes on the same wire cancel each other out.</p>
         <figure>
-          <img src="assets/pdf-images-transparent/image-012.png" alt="Two colour change boxes canceling on one wire.">
+          <div class="lesson-art" data-lesson-art="image-012" data-art-label="Two colour change boxes canceling on one wire."></div>
         </figure>
       </section>
 
       <section class="slide exercise" data-title="Exercise: Colour Change">
         <h2>Exercise</h2>
         <p>Use the properties of the colour change box to simplify:</p>
-        <figure class="canvas">
-          <img src="assets/pdf-images-transparent/image-013.png" alt="Colour change box simplification exercise.">
-        </figure>
+        <figure class="canvas"><div class="lesson-art" data-lesson-art="image-013" data-art-label="Colour change box simplification exercise."></div></figure>
       </section>
 
       <section class="slide" data-title="5. Leg Chop">
         <h2>5. Leg Chop</h2>
         <p>When a green spider is connected to a red spider by two parallel wires, you can chop them off. (sorry, spiders).</p>
         <figure>
-          <img src="assets/pdf-images-transparent/image-014.png" alt="Leg chop rule.">
+          <div class="lesson-art" data-lesson-art="image-014" data-art-label="Leg chop rule."></div>
         </figure>
       </section>
 
       <section class="slide exercise" data-title="Exercise: Leg Chop">
         <h2>Exercise</h2>
         <p>Use leg chopping to simplify the following diagram.</p>
-        <figure class="canvas">
-          <img src="assets/pdf-images-transparent/image-015.png" alt="Leg chopping exercise diagram.">
-        </figure>
+        <figure class="canvas"><div class="lesson-art" data-lesson-art="image-015" data-art-label="Leg chopping exercise diagram."></div></figure>
       </section>
 
       <section class="slide" data-title="6. Copy">
         <h2>6. Copy</h2>
         <p>We can push blank (or phase pi) red spiders through any blank green spider in the following way. We&rsquo;re basically copying the red spider across all the wires connected to the green spider.</p>
         <figure>
-          <img src="assets/pdf-images-transparent/image-016.png" alt="Copy rule.">
+          <div class="lesson-art" data-lesson-art="image-016" data-art-label="Copy rule."></div>
         </figure>
       </section>
 
       <section class="slide exercise" data-title="Exercise: Copy">
         <h2>Exercise</h2>
         <p>Show that we can use this to simplify the following diagram.</p>
-        <figure class="canvas">
-          <img src="assets/pdf-images-transparent/image-017.png" alt="Copy exercise diagram.">
-        </figure>
+        <figure class="canvas"><div class="lesson-art" data-lesson-art="image-017" data-art-label="Copy exercise diagram."></div></figure>
       </section>
 
       <section class="slide" data-title="7. Square Popping">
         <h2>7. Square Popping</h2>
         <p>Now for one of the most useful rewrites -- square popping. Given a square of spiders in the following setup, you can simplify it to just two.</p>
         <figure>
-          <img src="assets/pdf-images-transparent/image-018.png" alt="Square popping rule.">
+          <div class="lesson-art" data-lesson-art="image-018" data-art-label="Square popping rule."></div>
         </figure>
       </section>
 
       <section class="slide exercise" data-title="Exercise: Square Popping">
         <h2>Exercise</h2>
         <p>Let&rsquo;s use this powerful rewrite to simplify the diagram:</p>
-        <figure class="canvas">
-          <img src="assets/pdf-images-transparent/image-019.png" alt="Square popping exercise diagram.">
-        </figure>
+        <figure class="canvas"><div class="lesson-art" data-lesson-art="image-019" data-art-label="Square popping exercise diagram."></div></figure>
       </section>
 
       <section class="slide" data-title="7. Square Popping">
         <h2>7. Square Popping</h2>
         <p>Conversely, we can use this rule to push a green spider through a red spider:</p>
         <figure>
-          <img src="assets/pdf-images-transparent/image-020.png" alt="Using square popping to push a green spider through a red spider.">
+          <div class="lesson-art" data-lesson-art="image-020" data-art-label="Using square popping to push a green spider through a red spider."></div>
         </figure>
       </section>
 
       <section class="slide exercise" data-title="Exercise: Square Popping">
         <h2>Exercise</h2>
         <p>Push the green spider through the red one to simplify the following diagram. <span class="disable-note">[Without the copy rule]</span></p>
-        <figure class="canvas">
-          <img src="assets/pdf-images-transparent/image-021.png" alt="Push-through exercise diagram.">
-        </figure>
+        <figure class="canvas"><div class="lesson-art" data-lesson-art="image-021" data-art-label="Push-through exercise diagram."></div></figure>
       </section>
 
       <section class="slide exercise" data-title="8. Final Exercise">
         <h2>8. Final Exercise</h2>
         <p>Prove that Square Popping lets us leg chop! <span class="disable-note">[Without the hopf rule]</span></p>
-        <figure class="canvas">
-          <img src="assets/pdf-images-transparent/image-022.png" alt="Final exercise diagram.">
-        </figure>
+        <figure class="canvas"><div class="lesson-art" data-lesson-art="image-022" data-art-label="Final exercise diagram."></div></figure>
+      </section>
+
+      <section class="slide exercise" data-title="Exercise"><h2>Exercise</h2><p>Prove this five-wire version of square popping.</p>
+        <figure class="canvas"><div class="book-pair"><div data-book-diagram="PQS_BIALGEBRA_23" data-which="start"></div><span aria-hidden="true">→</span><div data-book-diagram="PQS_BIALGEBRA_23" data-which="goal"></div></div></figure>
+      </section>
+
+      <section class="slide exercise" data-title="Exercise"><h2>Exercise</h2><p>Show that these four controlled gates equal the single gate shown.</p>
+        <figure class="canvas"><div class="book-pair"><div data-book-diagram="PQS_CNOT_COMMUTATOR" data-which="start"></div><span aria-hidden="true">→</span><div data-book-diagram="PQS_CNOT_COMMUTATOR" data-which="goal"></div></div></figure>
+      </section>
+
+      <section class="slide exercise" data-title="Exercise"><h2>Exercise</h2><p>Combine the two quarter-turn phase gadgets into the half-turn target.</p>
+        <figure class="canvas"><div class="book-pair"><div data-book-diagram="PQS_GADGET_ADD" data-which="start"></div><span aria-hidden="true">→</span><div data-book-diagram="PQS_GADGET_ADD" data-which="goal"></div></div></figure>
+      </section>
+
+      <section class="slide exercise" data-title="Exercise"><h2>Exercise</h2><p>Rewrite this phase gadget so its two wires appear symmetrically.</p>
+        <figure class="canvas"><div class="book-pair"><div data-book-diagram="PQS_GADGET_SYMMETRY" data-which="start"></div><span aria-hidden="true">→</span><div data-book-diagram="PQS_GADGET_SYMMETRY" data-which="goal"></div></div></figure>
+      </section>
+
+      <section class="slide exercise" data-title="Exercise"><h2>Exercise</h2><p>Reduce the swapped pair of opposite-phase gadgets to two straight wires.</p>
+        <figure class="canvas"><div class="book-pair"><div data-book-diagram="PQS_GADGET_SWAP" data-which="start"></div><span aria-hidden="true">→</span><div data-book-diagram="PQS_GADGET_SWAP" data-which="goal"></div></div></figure>
       </section>
 
       <footer class="deck-controls">
@@ -241,5 +252,6 @@
 
     <script src="zx-exercise.js?v=20260621h"></script>
     <script src="slides.js?v=20260621k"></script>
+    <script type="module" src="lesson-additions.js"></script>
   </body>
 </html>

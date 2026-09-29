@@ -1,0 +1,18 @@
+.lesson-diagram { display:block; width:100%; max-width:720px; max-height:380px; margin:0 auto; overflow:visible; }
+.lesson-art { width:100%; min-width:0; }
+.lesson-art .lesson-rule { display:block; width:100%; margin:0; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; color:inherit; line-height:0; }
+button.lesson-rule, button.lesson-rule:hover, button.lesson-rule:active { display:block; width:100%; margin:0; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; color:inherit; cursor:pointer; line-height:0; }
+button.lesson-rule:focus-visible { outline:2px solid currentColor; outline-offset:5px; }
+.lesson-rule .lesson-diagram { max-height:var(--lesson-asset-max-height,min(48vh,360px)); }
+.lesson-art-pair { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:20px; }
+.lesson-art-pair > span { font:28px/1 "Quicksand","Open Sans",sans-serif; -webkit-text-fill-color:currentColor; }
+.lesson-art[data-lesson-art="intro-circuit"] .lesson-diagram { max-width:none; }
+@media(max-width:600px) {
+  .lesson-rule .lesson-diagram { max-height:min(var(--lesson-asset-max-height,280px),280px); }
+  .lesson-art-pair { gap:8px; }
+  .lesson-art-pair > span { font-size:22px; }
+}
+
+.fusion-art-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; align-items:center; }
+.fusion-art-row figure { min-width:0; margin:0; }
+@media(max-width:600px) { .fusion-art-row { gap:8px; } }
