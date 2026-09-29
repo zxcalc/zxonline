@@ -15,12 +15,18 @@ const confettiColors = [
   "#ec4899",
 ];
 const slideProgressKey = "zx-online:max-unlocked-slide";
+const allUnlockedKey = "zx-online:all-slides-unlocked";
+const celebratedExercises = new Set();
+
+function allSlidesUnlocked() {
+  return window.localStorage.getItem(allUnlockedKey) === "true";
+}
 
 let activeIndex = initialActiveIndex();
 
 function readMaxUnlockedSlide() {
   const value = Number(window.localStorage.getItem(slideProgressKey));
-  return Number.isFinite(value) && value >= 0 ? value : 0;
+  return Number.isFinite(value) && value >= 0 ? Math.min(value, slides.length - 1) : 0;
 }
 
 function writeMaxUnlockedSlide(index) {
@@ -44,7 +50,7 @@ function initialActiveIndex() {
     return 0;
   }
 
-  const maxUnlocked = readMaxUnlockedSlide();
+  const maxUnlocked = allSlidesUnlocked() ? slides.length - 1 : readMaxUnlockedSlide();
   return Math.max(0, Math.min(requestedIndex, maxUnlocked, slides.length - 1));
 }
 
@@ -137,7 +143,7 @@ function launchNextConfetti() {
 }
 
 function activeSlideBlocksNext() {
-  return Boolean(activeExercise()?.matches(":not(.is-resolved)"));
+  return !allSlidesUnlocked() && Boolean(activeExercise()?.matches(":not(.is-resolved)"));
 }
 
 function activeExercise() {
@@ -146,6 +152,7 @@ function activeExercise() {
 }
 
 function activeExerciseNeedsOpening() {
+  if (allSlidesUnlocked()) return false;
   const exercise = activeExercise();
   return Boolean(exercise?.matches(":not(.is-canvas-open):not(.is-resolved)"));
 }
@@ -156,14 +163,18 @@ function activeSlideIsFinal() {
 
 function sizeImagesToSlide() {
   const activeSlide = slides[activeIndex];
-  const images = Array.from(activeSlide.querySelectorAll("img"));
+  const images = Array.from(activeSlide.querySelectorAll("img, .lesson-art, .book-pair")).filter(image => !image.closest("[hidden]"));
+  const rows = [...new Set(images.map(image => image.closest(".fusion-art-row") || image))];
+  const canvasShell = activeExercise()?.querySelector(".zx-canvas-embed-shell");
+  const canvasVisible = canvasShell && !canvasShell.hidden;
 
-  if (images.length === 0) {
+  if (images.length === 0 && !canvasVisible) {
     return;
   }
 
   images.forEach((image) => {
     image.style.removeProperty("max-height");
+    image.style.removeProperty("--lesson-asset-max-height");
   });
 
   const deckStyle = getComputedStyle(deck);
@@ -176,6 +187,15 @@ function sizeImagesToSlide() {
     parseFloat(deckStyle.paddingBottom) -
     parseFloat(slideStyle.paddingTop) -
     parseFloat(slideStyle.paddingBottom);
+
+  if (canvasVisible) {
+    const overhead = Array.from(activeSlide.children).reduce((height, child) => {
+      const style = getComputedStyle(child);
+      return height + child.offsetHeight + (parseFloat(style.marginTop) || 0) + (parseFloat(style.marginBottom) || 0);
+    }, 0) - canvasShell.offsetHeight;
+    activeSlide.style.setProperty("--exercise-canvas-height", `${Math.max(220, Math.floor(usableHeight - overhead - 8))}px`);
+  }
+  if (!images.length) return;
 
   let nonImageHeight = 0;
 
@@ -194,15 +214,17 @@ function sizeImagesToSlide() {
 
       nonImageHeight += figureExtras + (caption ? caption.offsetHeight : 0);
     } else {
-      nonImageHeight += child.offsetHeight + verticalMargins;
+      const nestedArtHeight = rows.filter(row => child === row || child.contains(row)).reduce((sum, row) => sum + row.offsetHeight, 0);
+      nonImageHeight += child.offsetHeight + verticalMargins - nestedArtHeight;
     }
   });
 
-  const remainingHeight = usableHeight - nonImageHeight - images.length * 10;
-  const maxImageHeight = Math.max(90, Math.floor(remainingHeight / images.length));
+  const remainingHeight = usableHeight - nonImageHeight - rows.length * 10;
+  const maxImageHeight = Math.max(90, Math.floor(remainingHeight / rows.length));
 
   images.forEach((image) => {
     image.style.maxHeight = `${maxImageHeight}px`;
+    image.style.setProperty("--lesson-asset-max-height", `${maxImageHeight}px`);
   });
 }
 
@@ -211,7 +233,7 @@ function renderSlide(options = {}) {
     slide.classList.toggle("is-active", index === activeIndex);
   });
 
-  writeMaxUnlockedSlide(activeIndex);
+  if (!options.syncProgress) writeMaxUnlockedSlide(activeIndex);
   updateSlideHash();
 
   const wasNextDisabled = nextButton.disabled;
@@ -261,8 +283,21 @@ nextButton.addEventListener("click", () => {
 
 window.addEventListener("resize", sizeImagesToSlide);
 window.addEventListener("load", sizeImagesToSlide);
-window.addEventListener("zx-exercise-resolved", () => {
-  renderSlide({ celebrateUnlock: true });
+window.addEventListener("zx-exercise-opened", () => {
+  slides[activeIndex].scrollTop = 0;
+  sizeImagesToSlide();
+  window.requestAnimationFrame(() => { slides[activeIndex].scrollTop = 0; sizeImagesToSlide(); });
+});
+window.addEventListener("zx-exercise-resolved", (event) => {
+  const id = event.detail?.lessonId;
+  const justCompleted = id && id === activeExercise()?.dataset.lessonId && !celebratedExercises.has(id);
+  if (justCompleted) celebratedExercises.add(id);
+  renderSlide({ celebrateUnlock: justCompleted });
+  if (justCompleted && allSlidesUnlocked()) launchNextConfetti();
+});
+window.addEventListener("zx-progress-changed", () => {
+  if (!allSlidesUnlocked()) activeIndex = Math.min(activeIndex, readMaxUnlockedSlide());
+  renderSlide({ syncProgress: true });
 });
 
 renderSlide();

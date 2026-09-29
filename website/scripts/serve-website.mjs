@@ -15,6 +15,8 @@ const mimeTypes = new Map([
   [".pdf", "application/pdf"],
   [".png", "image/png"],
   [".svg", "image/svg+xml"],
+  [".ttf", "font/ttf"],
+  [".woff2", "font/woff2"],
 ]);
 
 function argumentValue(name) {
@@ -29,7 +31,7 @@ function argumentValue(name) {
 function resolveRequestPath(requestUrl) {
   const url = new URL(requestUrl ?? "/", `http://localhost:${port}`);
   let pathname = decodeURIComponent(url.pathname);
-  if (pathname === "/") pathname = "/slides.html";
+  if (pathname === "/") pathname = "/index.html";
 
   const filePath = resolve(websiteRoot, `.${pathname}`);
   if (filePath !== websiteRoot && !filePath.startsWith(`${websiteRoot}${sep}`)) {
@@ -58,6 +60,7 @@ const server = createServer(async (request, response) => {
     response.writeHead(200, {
       "Content-Length": fileStat.size,
       "Content-Type": mimeTypes.get(extname(filePath)) ?? "application/octet-stream",
+      "Cache-Control": "no-store",
     });
     createReadStream(filePath).pipe(response);
   } catch {
@@ -66,7 +69,7 @@ const server = createServer(async (request, response) => {
   }
 });
 
-server.listen(port, () => {
-  console.log(`Serving ZX Online website at http://localhost:${port}/slides.html`);
+server.listen(port, "127.0.0.1", () => {
+  console.log(`Serving ZX Online website at http://localhost:${port}/index.html`);
   console.log(`Root: ${websiteRoot}`);
 });
