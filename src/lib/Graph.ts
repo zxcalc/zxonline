@@ -1,6 +1,6 @@
 import { NodeData, EdgeData, GraphData, mapEquals, Coord , ZXNodeType } from "./Data";
 import { moveForward, moveBackward, moveToFront, moveToBack } from "./util";
-import { distToSegment } from "./geometry";
+import { distToSegment, closestPointOnSegment } from "./geometry";
 
 class Graph {
   private _graphData: GraphData = new GraphData();
@@ -317,6 +317,67 @@ class Graph {
     g = g.addEdgeWithData(finalEdge);
 
     return g;
+  }
+
+    // Insert a node partway along an edge: the edge is replaced by two edges
+  // meeting at the new node. The edge's routing points are divided between
+  // them according to where the insertion falls along the wire, so the drawn
+  // shape is preserved. The node is placed on the wire, not at the raw click.
+  public insertNodeIntoEdge(edgeId: number, nodeData: NodeData, at: Coord): Graph {
+    const e = this._edgeData.get(edgeId);
+    if (e === undefined) return this;
+    const src = this._nodeData.get(e.source);
+    const tgt = this._nodeData.get(e.target);
+    if (src === undefined || tgt === undefined) return this;
+
+    // which segment of the wire is the insertion nearest?
+    const chain = [src.coord, ...e.points, tgt.coord];
+    let bestSeg = 0;
+    let bestDist = Infinity;
+    for (let i = 0; i < chain.length - 1; i++) {
+      const d = distToSegment(at, chain[i], chain[i + 1]);
+      if (d < bestDist) {
+        bestDist = d;
+        bestSeg = i;
+      }
+    }
+    const onWire = closestPointOnSegment(at, chain[bestSeg], chain[bestSeg + 1]);
+
+    // points before the insertion stay on the first edge, after on the second
+    const beforePoints = e.points.slice(0, bestSeg);
+    const afterPoints = e.points.slice(bestSeg);
+
+    let g = this.removeEdges([edgeId]);
+
+    const newNode = nodeData.setId(g.freshNodeId).setCoord(onWire);
+    g = g.addNodeWithData(newNode);
+
+    g = g.addEdgeWithData(
+      new EdgeData()
+        .setId(g.freshEdgeId)
+        .setSource(e.source)
+        .setTarget(newNode.id)
+        .setPoints(beforePoints)
+    );
+    g = g.addEdgeWithData(
+      new EdgeData()
+        .setId(g.freshEdgeId)
+        .setSource(newNode.id)
+        .setTarget(e.target)
+        .setPoints(afterPoints)
+    );
+
+    return g;
+  }
+
+  // Number of edge-ends attached to this node. A self-loop counts twice.
+  public degree(nodeId: number): number {
+    let d = 0;
+    for (const e of this._edgeData.values()) {
+      if (e.source === nodeId) d += 1;
+      if (e.target === nodeId) d += 1;
+    }
+    return d;
   }
 
   // join two edges that connect

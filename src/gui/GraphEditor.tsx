@@ -465,16 +465,46 @@ const GraphEditor = ({
         break;
       case "vertex":
         {
-          const node = new NodeData()
-            .setId(graph.freshNodeId)
-            .setCoord(p1.snapToGrid(4))
-            .setType(currentNodeType);
-          updateGraph(graph.addNodeWithData(node), true);
+
+          if (currentNodeType === ZXNodeType.Hadamard) {
+            // A Hadamard is a single-wire unitary, so it can only be created by
+            // inserting it into an existing wire — never free-placed. This makes
+            // wrong-degree Hadamards unreachable by construction.
+            if (clickedEdge.current !== undefined) {
+              const g = graph.insertNodeIntoEdge(
+                clickedEdge.current,
+                new NodeData().setType(ZXNodeType.Hadamard),
+                p1
+              );
+              if (!g.equals(graph)) {
+                updateGraph(g, true);
+              }
+            }
+            // clicking empty canvas with the Hadamard brush: deliberately nothing
+          } else {
+            const node = new NodeData()
+              .setId(graph.freshNodeId)
+              .setCoord(p1.snapToGrid(4))
+              .setType(currentNodeType);
+            updateGraph(graph.addNodeWithData(node), true);
+          }
         }
         break;
       case "edge":
         if (uiState.edgeStartNode !== undefined && uiState.edgeEndNode !== undefined) {
-          let edge = new EdgeData()
+          // A Hadamard is a single-wire unitary: exactly two wires, no more.
+          // Refuse an edge that would over-connect either endpoint.
+          const overConnects = (nodeId: number): boolean =>
+            graph.node(nodeId)?.type === ZXNodeType.Hadamard && graph.degree(nodeId) >= 2;
+
+          if (
+            overConnects(uiState.edgeStartNode) ||
+            overConnects(uiState.edgeEndNode)
+          ) {
+            break; // silently refuse — the wire just isn't created
+          }
+
+          const edge = new EdgeData()
             .setId(graph.freshEdgeId)
             .setSource(uiState.edgeStartNode)
             .setTarget(uiState.edgeEndNode)
